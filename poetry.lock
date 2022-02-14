@@ -1,4 +1,12 @@
 [[package]]
+name = "asn1crypto"
+version = "1.4.0"
+description = "Fast ASN.1 parser and serializer with definitions for private keys, public keys, certificates, CRL, OCSP, CMS, PKCS#3, PKCS#7, PKCS#8, PKCS#12, PKCS#5, X.509 and TSP"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "atomicwrites"
 version = "1.4.0"
 description = "Atomic file writes."
@@ -10,7 +18,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 name = "attrs"
 version = "21.4.0"
 description = "Classes Without Boilerplate"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -59,6 +67,29 @@ urllib3 = ">=1.25.4,<1.27"
 
 [package.extras]
 crt = ["awscrt (==0.12.5)"]
+
+[[package]]
+name = "cattrs"
+version = "1.10.0"
+description = "Composable complex class support for attrs and dataclasses."
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.dependencies]
+attrs = ">=20"
+
+[[package]]
+name = "cbor2"
+version = "5.4.2.post1"
+description = "Pure Python CBOR (de)serializer with extensive tag support"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+doc = ["sphinx-rtd-theme", "sphinx-autodoc-typehints (>=1.2.0)"]
+test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "certifi"
@@ -406,6 +437,21 @@ botocore = ">=1.12.54"
 signals = ["blinker (>=1.3,<2.0)"]
 
 [[package]]
+name = "pyopenssl"
+version = "22.0.0"
+description = "Python wrapper module around the OpenSSL library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+cryptography = ">=35.0"
+
+[package.extras]
+docs = ["sphinx", "sphinx-rtd-theme"]
+test = ["flaky", "pretend", "pytest (>=3.0.1)"]
+
+[[package]]
 name = "pyparsing"
 version = "3.0.7"
 description = "Python parsing module"
@@ -617,6 +663,22 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "webauthn"
+version = "1.2.1"
+description = "Pythonic WebAuthn"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+asn1crypto = ">=0.24.0"
+attrs = ">=21.2.0"
+cattrs = ">=1.8.0"
+cbor2 = ">=4.0.1"
+cryptography = ">=3.4.7"
+pyOpenSSL = ">=20.0.1"
+
+[[package]]
 name = "werkzeug"
 version = "2.0.3"
 description = "The comprehensive WSGI web application library."
@@ -654,9 +716,13 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c0e9d3ca8b2e674367218d293f6c2fad4b43d0b795167f4b77e685bfec572beb"
+content-hash = "ba79306ad5a7a52541412fa54af0366ce0d7f19a3381a5dbea95d3103e1e59c0"
 
 [metadata.files]
+asn1crypto = [
+    {file = "asn1crypto-1.4.0-py2.py3-none-any.whl", hash = "sha256:4bcdf33c861c7d40bdcd74d8e4dd7661aac320fcdf40b9a3f95b4ee12fde2fa8"},
+    {file = "asn1crypto-1.4.0.tar.gz", hash = "sha256:f4f6e119474e58e04a2b1af817eb585b4fd72bdd89b998624712b5c99be7641c"},
+]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
     {file = "atomicwrites-1.4.0.tar.gz", hash = "sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a"},
@@ -676,6 +742,33 @@ boto3 = [
 botocore = [
     {file = "botocore-1.23.54-py3-none-any.whl", hash = "sha256:06ae8076c4dcf3d72bec4d37e5f2dce4a92a18a8cdaa3bfaa6e3b7b5e30a8d7e"},
     {file = "botocore-1.23.54.tar.gz", hash = "sha256:4bb9ba16cccee5f5a2602049bc3e2db6865346b2550667f3013bdf33b0a01ceb"},
+]
+cattrs = [
+    {file = "cattrs-1.10.0-py3-none-any.whl", hash = "sha256:35dd9063244263e63bd0bd24ea61e3015b00272cead084b2c40d788b0f857c46"},
+    {file = "cattrs-1.10.0.tar.gz", hash = "sha256:211800f725cdecedcbcf4c753bbd22d248312b37d130f06045434acb7d9b34e1"},
+]
+cbor2 = [
+    {file = "cbor2-5.4.2.post1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:21a8778a92fae2fa713dfee2dc781fce64bc8fcb2e085368eff3a0b3434f83c7"},
+    {file = "cbor2-5.4.2.post1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c55b683d2e84df1da6db527faac12a9b2b844a80c0a7864088c1aaf07e4ad1d4"},
+    {file = "cbor2-5.4.2.post1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:8b0455854dc53d816518ec5c117bf159b8d23d178ff8f655e3290192878264d5"},
+    {file = "cbor2-5.4.2.post1-cp310-cp310-win_amd64.whl", hash = "sha256:566b6f85fd8caf85b34b75dd7056dd0ae076334af4def0e27da805c10f941ae1"},
+    {file = "cbor2-5.4.2.post1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:92126b8fb5b20aa7167a5c0a84bb9562f54004af06ef601d05897dcad8a926f0"},
+    {file = "cbor2-5.4.2.post1-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9c5e01b12a2f9172d31e096d65c1965a5b3b95bdb1ca91feb89741e6ce6a533a"},
+    {file = "cbor2-5.4.2.post1-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:6930fe3f83d5f4d9f83baf9a225651591e2f97ae04579bac6598c9520f71bbcc"},
+    {file = "cbor2-5.4.2.post1-cp36-cp36m-win_amd64.whl", hash = "sha256:1e4f694b135688d6126988af602409e1d94dcdefbb7b242b56ba3a09779930fb"},
+    {file = "cbor2-5.4.2.post1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:7c2a4336becc4021777df04371f119d74cf83befb604fb4e62cfb2d50dac9fbd"},
+    {file = "cbor2-5.4.2.post1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:231cba333cbac0e8912042f04e78b3f8eacde8ee08777e197f10f7a2e42c43af"},
+    {file = "cbor2-5.4.2.post1-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:e497c91bf107490503c1d834a04ccfc849d8b0b36ff8ee1598f10712864a4c87"},
+    {file = "cbor2-5.4.2.post1-cp37-cp37m-win_amd64.whl", hash = "sha256:92e40496c33de912f16f275b88e063073343b39faa63a6d10deb6fdf5127ae44"},
+    {file = "cbor2-5.4.2.post1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:565fe95a720b2e999cb56d19d1d309097930144f0c85eed34a058c14cf3ac897"},
+    {file = "cbor2-5.4.2.post1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d140b20b0bcbdfa80a910c6832aaa13f870b7045e39f8d9b5b652ef87ce3eac5"},
+    {file = "cbor2-5.4.2.post1-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:85c048f5fc170b619127c0eb2dcc7bc832e982e3cefbaec19c028afe0d231864"},
+    {file = "cbor2-5.4.2.post1-cp38-cp38-win_amd64.whl", hash = "sha256:75621aaa144e5f51bea3a1c753bad11ed7f3669a086222d09975953b5df6b0bf"},
+    {file = "cbor2-5.4.2.post1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:1c924fefd4fc7419a87463186c0c0ffc65c88635e813e02eff98751c49e43ab0"},
+    {file = "cbor2-5.4.2.post1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a54b9cfe5ddfc7d1199d2a9e37e799c0c2b01385ce837b80feaeaf912d4797f2"},
+    {file = "cbor2-5.4.2.post1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:53239908e4e80395dada750f612536dab9d4f09b9a419479b4d69e1e2419656f"},
+    {file = "cbor2-5.4.2.post1-cp39-cp39-win_amd64.whl", hash = "sha256:1621f53af3b8016c991f9e27123efae54006cf57c321693f234fec9636c55d6b"},
+    {file = "cbor2-5.4.2.post1.tar.gz", hash = "sha256:9cf21d59604b9529d7877c8e0342a2ebaae1a07fe8ff5683dc75fec15847c797"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
@@ -918,6 +1011,10 @@ pynamodb = [
     {file = "pynamodb-5.2.1-py3-none-any.whl", hash = "sha256:bb93bd86061c91508c44668c219d51d080d011f665153fa9a471ced06b2f2ee7"},
     {file = "pynamodb-5.2.1.tar.gz", hash = "sha256:c7a9c557b52364bc09257edd00378eebc75258bbdaa0fe050fcce2356149f90a"},
 ]
+pyopenssl = [
+    {file = "pyOpenSSL-22.0.0-py2.py3-none-any.whl", hash = "sha256:ea252b38c87425b64116f808355e8da644ef9b07e429398bfece610f893ee2e0"},
+    {file = "pyOpenSSL-22.0.0.tar.gz", hash = "sha256:660b1b1425aac4a1bea1d94168a85d99f0b3144c869dd4390d27629d0087f1bf"},
+]
 pyparsing = [
     {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
     {file = "pyparsing-3.0.7.tar.gz", hash = "sha256:18ee9022775d270c55187733956460083db60b37d0d0fb357445f3094eed3eea"},
@@ -1023,6 +1120,10 @@ urllib3 = [
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
+]
+webauthn = [
+    {file = "webauthn-1.2.1-py3-none-any.whl", hash = "sha256:024d0c54d1a11a1d95587745a0fea721cdb39ddc591ad0973bf93f55a123eb74"},
+    {file = "webauthn-1.2.1.tar.gz", hash = "sha256:3a9565e4587d6322a2c69c92faa89f40e211893f41b5993a410cdef7bc43d06b"},
 ]
 werkzeug = [
     {file = "Werkzeug-2.0.3-py3-none-any.whl", hash = "sha256:1421ebfc7648a39a5c58c601b154165d05cf47a3cd0ccb70857cbdacf6c8f2b8"},

@@ -1,0 +1,1 @@
+SERVICE_URN_BASE = 'urn:service:auth'
