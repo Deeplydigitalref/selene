@@ -1,26 +1,24 @@
 import pytest
 
+"""
+"""
+
 @pytest.fixture
 def api_registration_request_event():
     return {
         "body": "eyJ0ZXN0IjoiYm9keSJ9",
         "resource": "/{proxy+}",
-        "path": "/registration/subject1",
+        "path": "/registration/makeCredential/subject1",
         "httpMethod": "GET",
         "isBase64Encoded": True,
         "queryStringParameters": {
-            "foo": "bar"
         },
         "multiValueQueryStringParameters": {
-            "foo": [
-                "bar"
-            ]
         },
         "pathParameters": {
             "proxy": "/path/to/resource"
         },
         "stageVariables": {
-            "baz": "qux"
         },
         "headers": {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -118,9 +116,9 @@ def api_registration_request_event():
                 "userAgent": "Custom User Agent String",
                 "user": None
             },
-            "path": "/registration/subject1",
+            "path": "/registration/makeCredential/subject1",
             "resourcePath": "/{proxy+}",
-            "httpMethod": "POST",
+            "httpMethod": "GET",
             "apiId": "1234567890",
             "protocol": "HTTP/1.1"
         }
