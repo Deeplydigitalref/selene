@@ -368,7 +368,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pyfuncify"
-version = "0.2.27"
+version = "0.3.0"
 description = ""
 category = "main"
 optional = false
@@ -390,7 +390,7 @@ simple-memory-cache = "^1.0.0"
 type = "git"
 url = "https://github.com/wildfauve/pyfuncify.git"
 reference = "main"
-resolved_reference = "e7eb3e4c64974e807dff2ce5b6a8a9e42977dc28"
+resolved_reference = "23a8b16d50d263a32157f08e1513675007d69b17"
 
 [[package]]
 name = "pygments"

@@ -3,8 +3,8 @@ from pyfuncify import span_tracer, chronos, app
 from webauthn.helpers import structs
 
 from functions.registration.handlers import registration_initiation_handler
-from functions.registration.domain import registration
-from common.util import env, parameter_store, error
+from functions.registration.domain import value
+from common.util import env, serialisers
 
 def test_successful_response(api_registration_request_event,
                              ssm_setup,
@@ -18,18 +18,34 @@ def test_successful_response(api_registration_request_event,
     assert response.is_right()
     assert response.value.response.is_right()
 
-def test_creates_a_registration(api_registration_request_event,
+def test_returns_a_seialisable_result(api_registration_request_event,
                                 ssm_setup,
                                 s3_setup,
                                 dynamo_mock,
                                 set_up_env):
+
     request = request_builder(api_registration_request_event)
 
-    reg = request.event.request_function(request).value.response.value
+    result = request.event.request_function(request).value.response.value
 
-    assert reg.subject_name == 'subject1'
-    assert isinstance(reg.registration_options, structs.PublicKeyCredentialCreationOptions)
-    assert reg.registration_state == registration.RegistrationStates.CREATED
+    assert isinstance(result, serialisers.WebAuthnSerialiser)
+
+    serialised_result = result.serialise()
+
+    assert '"user": {"id": "c3ViamVjdDE", "name": "subject1", "displayName": "subject1"}' in serialised_result
+
+def test_provides_registration_options_for_return(api_registration_request_event,
+                                                  ssm_setup,
+                                                  dynamo_mock,
+                                                  set_up_env):
+
+    request = request_builder(api_registration_request_event)
+
+    reg_opts = request.event.request_function(request).value.response.value.serialisable
+
+    assert reg_opts.subject_name == 'subject1'
+    assert isinstance(reg_opts.registration_options, structs.PublicKeyCredentialCreationOptions)
+    assert reg_opts.registration_state == value.RegistrationStates.CREATED
 
 
 

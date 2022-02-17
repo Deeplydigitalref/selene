@@ -39,7 +39,7 @@ def create(model: RegistrationModel) -> RegistrationModel:
     repo = base_model.SubjectRegistration(hash_key=pk,
                                           range_key=sk,
                                           subject_name=model.subject_name,
-                                          registration_state=model.registration_state.name,
+                                          registration_state=model.registration_state,
                                           encoded_challenge=model.encoded_challenge)
     try_save = save(repo)
 
@@ -51,6 +51,19 @@ def create(model: RegistrationModel) -> RegistrationModel:
 @monad.monadic_try()
 def save(model) -> Either[Dict]:
     return model.save()
+
+@monad.monadic_try()
+def find_by_uuid(uuid: str) -> Either[RegistrationModel]:
+    return model_from_repo(uuid, base_model.SubjectRegistration.get(hash_key=format_registration_pk(uuid),
+                                                                    range_key=format_registration_sk(uuid)))
+
+def model_from_repo(uuid: str, repo: base_model.SubjectRegistration) -> RegistrationModel:
+    return RegistrationModel(uuid=uuid,
+                             subject_name=repo.subject_name,
+                             registration_state=repo.registration_state,
+                             registration_challenge=encoding_helpers.base64url_to_bytes(repo.encoded_challenge),
+                             encoded_challenge=repo.encoded_challenge,
+                             repo=repo)
 
 def format_registration_pk(uuid):
     return "REG#{}".format(uuid)

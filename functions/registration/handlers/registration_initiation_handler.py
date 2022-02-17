@@ -5,6 +5,7 @@ from pymonad.tools import curry
 from pyfuncify import fn, monad, logger, app
 
 from common.typing.custom_types import Either
+from common.util import serialisers
 
 from .. import command
 
@@ -100,7 +101,10 @@ def handle(request: app.RequestEvent) -> Either:
 
 def generate_registration_options(request) -> Either[app.RequestEvent]:
     result = command.authn_registration.initiate(request.event)
-    request.response = result
+    if result.is_right():
+        request.response = monad.Right(serialisers.WebAuthnSerialiser(result.value))
+    else:
+        breakpoint()
     return monad.Right(request)
 
 
