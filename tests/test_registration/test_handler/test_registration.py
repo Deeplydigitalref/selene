@@ -22,7 +22,7 @@ def test_successful_response(api_registration_request_event,
 #
 
 # Helpers
-@app.route(('API', 'GET', '/registration/makeCredential/{subject1}'))
+@app.route(('API', 'GET', '/registration/makeCredential/{subject}'))
 def invoker(request):
     return registration_initiation_handler.handle(request)
 

@@ -2,9 +2,12 @@ import uuid
 from typing import Dict
 from pymonad.tools import curry
 
-from pyfuncify import fn, monad, logger, chronos
+from pyfuncify import fn, monad, logger, app
 
-from common.util import error
+from common.typing.custom_types import Either
+
+from .. import command
+
 
 _CTX = {}
 
@@ -89,10 +92,18 @@ Respond with a cookie and the generated webauthn registration parameters:
 
 """
 
-class AggregateError(error.ServiceError):
-    pass
-
-def handle(request: Dict) -> monad.MEither:
+def handle(request: app.RequestEvent) -> Either:
     _CTX['tracer'] = request.tracer
 
-    return monad.Right(None)
+    result = generate_registration_options(request) >> to_result
+
+    breakpoint()
+
+def generate_registration_options(request) -> Either:
+    result = command.authn_registration.initiate(request.event)
+
+    breakpoint()
+
+
+def to_result(request) -> Either:
+    breakpoint()

@@ -21,7 +21,9 @@ class BaseModel(Model):
     kind = DiscriminatorAttribute()
 
 class SubjectRegistration(BaseModel, discriminator='auth:subject:registration'):
-    pass
+    subject_name = UnicodeAttribute()
+    registration_state = UnicodeAttribute()
+    encoded_challenge = UnicodeAttribute()
 
 
 class Circuit(BaseModel, discriminator='auth:circuit'):
