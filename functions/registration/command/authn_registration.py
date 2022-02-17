@@ -6,8 +6,7 @@ from common.typing.custom_types import Either
 
 def initiate(event: app.ApiGatewayRequestEvent) -> Either[registration.Registration]:
     result = new_registration(event) >> auth_factory >> initiate_registration
-
-    breakpoint()
+    return result
 
 def new_registration(event: app.ApiGatewayRequestEvent) -> Either[registration.Registration]:
     return monad.Right(registration.new(subject_name=event.path_params['subject']))

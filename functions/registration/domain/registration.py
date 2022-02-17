@@ -6,7 +6,7 @@ import uuid
 
 from pyfuncify import state_machine, monad
 
-from webauthn.helpers import structs
+from webauthn.helpers import structs, options_to_json
 
 from common.domain import value
 from common.repository import registration as repo
@@ -46,6 +46,9 @@ class Registration():
     authn_candidate: AuthType
     registration_state: RegistrationStates = field(default=None)
     registration_options: structs.PublicKeyCredentialCreationOptions = field(default=None)
+
+    def serialise(self):
+        return options_to_json(self.registration_options)
 
 
 #

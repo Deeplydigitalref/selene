@@ -96,14 +96,13 @@ def handle(request: app.RequestEvent) -> Either:
     _CTX['tracer'] = request.tracer
 
     result = generate_registration_options(request) >> to_result
+    return result
 
-    breakpoint()
-
-def generate_registration_options(request) -> Either:
+def generate_registration_options(request) -> Either[app.RequestEvent]:
     result = command.authn_registration.initiate(request.event)
+    request.response = result
+    return monad.Right(request)
 
-    breakpoint()
 
-
-def to_result(request) -> Either:
-    breakpoint()
+def to_result(request) -> Either[app.RequestEvent]:
+    return monad.Right(request)
