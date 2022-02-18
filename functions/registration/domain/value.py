@@ -30,4 +30,5 @@ class Registration():
     authn_candidate: AuthType
     registration_state: RegistrationStates = field(default=None)
     registration_options: structs.PublicKeyCredentialCreationOptions = field(default=None)
+    registration_session: str = field(default=None)
 

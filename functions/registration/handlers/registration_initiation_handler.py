@@ -102,6 +102,7 @@ def handle(request: app.RequestEvent) -> Either:
 def generate_registration_options(request) -> Either[app.RequestEvent]:
     result = command.authn_registration.initiate(request.event)
     if result.is_right():
+        request.event.web_session = result.value.registration_session
         request.response = monad.Right(serialisers.WebAuthnSerialiser(result.value))
     else:
         breakpoint()
@@ -110,3 +111,7 @@ def generate_registration_options(request) -> Either[app.RequestEvent]:
 
 def to_result(request) -> Either[app.RequestEvent]:
     return monad.Right(request)
+
+#
+# Helpers
+#

@@ -7,7 +7,7 @@ class Env:
 
     region_name = os.environ.get('REGION_NAME', default='ap-southeast-2')
 
-    expected_envs = ['dynamo_table_name']
+    expected_envs = []
 
 
     @staticmethod

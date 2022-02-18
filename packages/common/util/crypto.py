@@ -10,7 +10,8 @@ def generate_challenge(length: int = 64) -> bytes:
 
 
 def generate_secure_cookie(tokens: Dict) -> bytes:
-    return SecureCookie(tokens, "cookie-signing-key").serialize()
+    tokens = SecureCookie(tokens, "cookie-signing-key").serialize()
+    return tokens.decode('utf-8')
 
 def validate_secure_cookie(cookie: bytes) -> Dict:
-    return SecureCookie.unserialize(cookie, "cookie-signing-key")
+    return SecureCookie.unserialize(cookie.encode(), "cookie-signing-key")
