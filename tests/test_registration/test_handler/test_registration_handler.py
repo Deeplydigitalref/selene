@@ -8,7 +8,6 @@ from common.util import env, serialisers
 
 def test_successful_response(api_registration_request_event,
                              ssm_setup,
-                             s3_setup,
                              dynamo_mock,
                              set_up_env):
     request = request_builder(api_registration_request_event)

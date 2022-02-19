@@ -1,7 +1,7 @@
 from webauthn.registration import generate_registration_options as webauthn_opts
 from webauthn.helpers import cose, structs, options_to_json
 
-from common.util import crypto
+from key_management.domain import crypto
 
 
 def generate_options(rp_id, rp_name, subject_name) -> structs.PublicKeyCredentialCreationOptions:

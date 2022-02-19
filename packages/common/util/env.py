@@ -19,9 +19,13 @@ class Env:
     def dynamodb_table():
         # When in test the table might not have been setup from the env
         if Env.test() and os.environ.get('DYNAMODB_TABLE_NAME', None) is None:
-            os.environ['DYNAMODB_TABLE_NAME'] = 'auth.reference.io'
+            os.environ['DYNAMODB_TABLE_NAME'] = 'selene.reference.io'
 
         return os.environ.get('DYNAMODB_TABLE_NAME', default=None)
+
+    @staticmethod
+    def kek():
+        return os.environ.get('KEK', default=None)
 
 
     @staticmethod
