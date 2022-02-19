@@ -15,8 +15,10 @@ def invalidate_cache():
 
 @kek_cache.on_first_access
 def get_kek():
-    return Fernet(encode(env.Env.kek()))
+    return build_kek(env.Env.kek())
 
+def build_kek(key_str: str):
+    return Fernet(encode(key_str))
 
 def create_kek():
     return Fernet.generate_key().decode('utf-8')
