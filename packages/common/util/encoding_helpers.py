@@ -15,3 +15,10 @@ def bytes_to_base64url(val: bytes) -> str:
     Base64URL-encode the provided bytes
     """
     return urlsafe_b64encode(val).decode("utf-8").replace("=", "")
+
+
+def decode(by: bytes) -> str:
+    return by.decode('utf-8')
+
+def encode(st: str) -> bytes:
+    return st.encode('utf-8')

@@ -2,7 +2,7 @@ from typing import Union
 from cryptography.fernet import Fernet
 from simple_memory_cache import GLOBAL_CACHE
 
-from common.util import env
+from common.util import env, encoding_helpers
 
 kek_cache = GLOBAL_CACHE.MemoryCachedVar('kek_cache')
 
@@ -18,23 +18,17 @@ def get_kek():
     return build_kek(env.Env.kek())
 
 def build_kek(key_str: str):
-    return Fernet(encode(key_str))
+    return Fernet(encoding_helpers.encode(key_str))
 
 def create_kek():
-    return Fernet.generate_key().decode('utf-8')
+    return encoding_helpers.decode(Fernet.generate_key())
 
 def encrypt(data: str, as_str: bool = True) -> Union[bytes, str]:
-    token = kek().encrypt(encode(data))
+    token = kek().encrypt(encoding_helpers.encode(data))
     if as_str:
-        return decode(token)
+        return encoding_helpers.decode(token)
     return token
 
 def decrypt(token: str):
-    data = kek().decrypt(encode(token))
-    return decode(data)
-
-def decode(by: bytes) -> str:
-    return by.decode('utf-8')
-
-def encode(st: str) -> bytes:
-    return st.encode('utf-8')
+    data = kek().decrypt(encoding_helpers.encode(token))
+    return encoding_helpers.decode(data)

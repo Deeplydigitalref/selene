@@ -39,8 +39,16 @@ def it_gets_the_current_public_key_pair(new_kek):
     from jwcrypto.jwk import JWK
 
     kid, encrypted_pair = key_management.rotate_public_key_pair()
-    key_store.KeyStore().get_key_by_kid(kid)
 
     key = key_management.get_key_by_use(key_management.KeyUse.sig)
 
     assert isinstance(key, JWK)
+
+
+def it_creates_a_symmetric_key(new_kek):
+    kid, key = key_management.rotate_symmetric_key()
+
+    found_key = key_management.get_key_by_use(key_management.KeyUse.enc)
+
+    assert found_key == key_management.decrypt_sym_key(key)
+
