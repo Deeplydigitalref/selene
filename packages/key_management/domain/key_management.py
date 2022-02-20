@@ -13,6 +13,13 @@ def rotate_public_key_pair():
     key_store.KeyStore().add_key(kid=kid, cyphertext=exportable_pair, alg= 'RSA', use=KeyUse.sig.name, state='active')
     return kid, exportable_pair
 
+def get_key_by_use(use: KeyUse):
+    stored_key = key_store.KeyStore().get_key_by_use(use.name)
+    if not stored_key:
+        return None
+    return decrypt_public_key_pair(stored_key['cyphertext'])
+
+
 def get_key_by_kid(kid):
     stored_key = key_store.KeyStore().get_key_by_kid(kid)
     if not stored_key:

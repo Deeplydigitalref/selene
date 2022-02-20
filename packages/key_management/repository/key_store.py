@@ -13,3 +13,6 @@ class KeyStore(singleton.Singleton):
 
     def get_key_by_kid(self, kid):
         return self.kids[kid]
+
+    def get_key_by_use(self, use):
+        return self.uses[use][0]

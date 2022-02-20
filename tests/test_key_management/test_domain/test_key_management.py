@@ -35,8 +35,12 @@ def it_gets_a_key_by_kid(new_kek):
 
     assert isinstance(key, JWK)
 
+def it_gets_the_current_public_key_pair(new_kek):
+    from jwcrypto.jwk import JWK
 
-@pytest.fixture
-def new_kek():
-    os.environ['KEK'] = kek.create_kek()
-    pass
+    kid, encrypted_pair = key_management.rotate_public_key_pair()
+    key_store.KeyStore().get_key_by_kid(kid)
+
+    key = key_management.get_key_by_use(key_management.KeyUse.sig)
+
+    assert isinstance(key, JWK)

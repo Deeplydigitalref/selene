@@ -5,31 +5,53 @@ from jwcrypto.jwt import JWT
 from jwcrypto.jwk import JWK
 from pymonad.tools import curry
 from pyfuncify import fn, app, monad
+from attrs import define, field
+
+from . import key_management
 
 class TokenError(app.AppError):
     pass
 
-def generate_signed_jwt(rsa_private_key: JWK, claims: dict):
+@define
+class JwtPipline():
+    signing_key: JWK
+    claims: dict = field(default=None)
+    jwt: JWT = field(default=None)
+    token: str = field(default=None)
+
+
+def generate_signed_jwt(claims: dict):
     """
     Generates an RSA signed JWT is serialised form
     """
-    return fn.compose_iter([generate_jwt(rsa_private_key.kid), sign(rsa_private_key), serialise], claims)
+    result = fn.compose_iter([jwt_pipeline_builder(current_sig_key()), generate_jwt, sign, serialise], claims)
+    return result.token
 
 @monad.monadic_try()
-def decode_and_validate(rsa_key_pair, encoded_jwt: str):
-    jwt = JWT(jwt=encoded_jwt)
-    token = jwt.token
-    # token.jose_header => {'alg': 'RS256', 'kid': '1'}
+def decode_and_validate(encoded_jwt: str) -> dict:
+    token = JWT(jwt=encoded_jwt)
+    jwt = token.token
 
-    if not isinstance(token, JWS):
+    signing_key = key_management.get_key_by_kid(kid=jwt.jose_header['kid'])
+
+    if not isinstance(jwt, JWS) or not signing_key:
         breakpoint()
 
-    token.verify(rsa_key_pair)
-    return json_decode(token.payload)
+    jwt.verify(signing_key)
+    return json_decode(jwt.payload)
 
 #
 # Helper Functions
 #
+
+@curry(2)
+def jwt_pipeline_builder(signing_key: JWK, claims: dict):
+    return JwtPipline(signing_key=signing_key, claims=claims)
+
+def current_sig_key():
+    # TODO: where to assume caching
+    return key_management.get_key_by_use(key_management.KeyUse.sig)
+
 def jse_decrypt():
     token = jtok.token
     if isinstance(token, JWE):
@@ -44,17 +66,19 @@ def jse_decrypt():
     else:
         raise TypeError("Invalid Token type: %s" % type(jtok))
 
-@curry(2)
-def generate_jwt(kid, claims):
-    return JWT({'kid': kid, 'alg': 'RS256'}, claims)
 
-@curry(2)
-def sign(private_key, token):
-    token.make_signed_token(private_key)
-    return token
+def generate_jwt(value: JwtPipline) -> JwtPipline:
+    value.jwt = JWT({'kid': value.signing_key.kid, 'alg': 'RS256', 'kty': key_management.KeyUse.sig.name}, value.claims)
+    return value
 
-def serialise(token):
-    return token.serialize()
+
+def sign(value: JwtPipline) -> JwtPipline:
+    value.jwt.make_signed_token(value.signing_key)
+    return value
+
+def serialise(value: JwtPipline) -> JwtPipline:
+    value.token = value.jwt.serialize()
+    return value
 
 # def generate_expired_signed_jwt():
 #     """
