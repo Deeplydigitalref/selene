@@ -1,6 +1,7 @@
 import pytest
 import os
 from key_management.domain import key_management, kek
+from key_management.repository import key_store
 
 def it_creates_a_key_public_key_pair_encrypted_by_the_kek(new_kek):
     kid, encrypted_pair = key_management.create_exportable_public_key_pair()
@@ -14,6 +15,25 @@ def it_decrypts_an_encrypted_key_pair(new_kek):
     decrypted_pair = key_management.decrypt_public_key_pair(encrypted_pair)
 
     assert decrypted_pair.kid == kid
+
+
+def it_persists_a_new_active_sig_key(new_kek):
+    kid, encrypted_pair = key_management.rotate_public_key_pair()
+
+    stored_key = key_store.KeyStore().get_key_by_kid(kid)
+
+    assert stored_key
+    assert stored_key['cyphertext'] == encrypted_pair
+
+def it_gets_a_key_by_kid(new_kek):
+    from jwcrypto.jwk import JWK
+
+    kid, encrypted_pair = key_management.rotate_public_key_pair()
+    key_store.KeyStore().get_key_by_kid(kid)
+
+    key = key_management.get_key_by_kid(kid)
+
+    assert isinstance(key, JWK)
 
 
 @pytest.fixture
