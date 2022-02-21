@@ -617,17 +617,6 @@ botocore = ">=1.12.36,<2.0a.0"
 crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
-name = "secure-cookie"
-version = "0.2.0"
-description = "Secure cookie and session interface for WSGI applications."
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-Werkzeug = ">0.15"
-
-[[package]]
 name = "simple-memory-cache"
 version = "1.0.0"
 description = "Dead Simple Memory Cache"
@@ -707,7 +696,7 @@ pyOpenSSL = ">=22.0.0"
 name = "werkzeug"
 version = "2.0.3"
 description = "The comprehensive WSGI web application library."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -741,7 +730,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "745ec040597da0d0ffd433419f3990a5e570a4e7c66f3c98022a0b32e3ffcf21"
+content-hash = "2e9e9bd7590af401cb3e84ca008a8663a2a99788e5b4688465acfd168027d2e1"
 
 [metadata.files]
 asn1crypto = [
@@ -1139,10 +1128,6 @@ responses = [
 s3transfer = [
     {file = "s3transfer-0.5.1-py3-none-any.whl", hash = "sha256:25c140f5c66aa79e1ac60be50dcd45ddc59e83895f062a3aab263b870102911f"},
     {file = "s3transfer-0.5.1.tar.gz", hash = "sha256:69d264d3e760e569b78aaa0f22c97e955891cd22e32b10c51f784eeda4d9d10a"},
-]
-secure-cookie = [
-    {file = "secure-cookie-0.2.0.tar.gz", hash = "sha256:7fbc547d65fe3520ec3ededc8e2963afd9275863818dcfbf17ded8457274321c"},
-    {file = "secure_cookie-0.2.0-py3-none-any.whl", hash = "sha256:35f163a10bc3089c5765f24a3f3ca829c446b2230c99d97606110edf6f56ee54"},
 ]
 simple-memory-cache = [
     {file = "simple_memory_cache-1.0.0-py3-none-any.whl", hash = "sha256:4a956c98408e63b04e06d2601123a8cb039217d0981cdcd79e0e083282cbb639"},

@@ -9,6 +9,7 @@ from common.util import env, serialisers
 def test_successful_response(api_registration_request_event,
                              ssm_setup,
                              dynamo_mock,
+                             set_up_key_management,
                              set_up_env):
     request = request_builder(api_registration_request_event)
 
@@ -18,10 +19,11 @@ def test_successful_response(api_registration_request_event,
     assert response.value.response.is_right()
 
 def test_returns_a_seialisable_result(api_registration_request_event,
-                                ssm_setup,
-                                s3_setup,
-                                dynamo_mock,
-                                set_up_env):
+                                      ssm_setup,
+                                      s3_setup,
+                                      dynamo_mock,
+                                      set_up_key_management,
+                                      set_up_env):
 
     request = request_builder(api_registration_request_event)
 
@@ -36,6 +38,7 @@ def test_returns_a_seialisable_result(api_registration_request_event,
 def test_provides_registration_options_for_return(api_registration_request_event,
                                                   ssm_setup,
                                                   dynamo_mock,
+                                                  set_up_key_management,
                                                   set_up_env):
 
     request = request_builder(api_registration_request_event)

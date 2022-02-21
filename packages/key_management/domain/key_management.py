@@ -68,8 +68,10 @@ def decrypt_exported_pair_fns():
     return [kek.decrypt, public_key.load_pair_from_json]
 
 def decrypt_exported_sym_key_fns():
-    return [kek.decrypt, encoding_helpers.encode]
+    return [kek.decrypt, to_fernet_key]
 
+def to_fernet_key(key):
+    return Fernet(encoding_helpers.encode(key))
 
 def assign_kid():
     return str(uuid.uuid4())

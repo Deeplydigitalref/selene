@@ -1,6 +1,6 @@
 import pytest
 import os
-from key_management.domain import key_management, kek
+from key_management.domain import key_management, sym_enc
 from key_management.repository import key_store
 
 def it_creates_a_key_public_key_pair_encrypted_by_the_kek(new_kek):
@@ -50,5 +50,5 @@ def it_creates_a_symmetric_key(new_kek):
 
     found_key = key_management.get_key_by_use(key_management.KeyUse.enc)
 
-    assert found_key == key_management.decrypt_sym_key(key)
+    assert found_key._signing_key == key_management.decrypt_sym_key(key)._signing_key
 

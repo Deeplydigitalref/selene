@@ -31,12 +31,6 @@ def it_fails_when_the_token_is_invalid(new_kek,
     assert id_token.is_left()
 
 
-
-@pytest.fixture
-def rotate_sig_key_pair():
-    key_management.rotate_public_key_pair()
-    pass
-
 @pytest.fixture
 def id_token_claims():
     return dict(iss="https://selene.reference.io",

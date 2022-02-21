@@ -1,6 +1,8 @@
 from typing import Dict
 import secrets
-from secure_cookie.cookie import SecureCookie
+import json
+
+from . import sym_enc
 
 def generate_challenge(length: int = 64) -> bytes:
     """
@@ -10,8 +12,13 @@ def generate_challenge(length: int = 64) -> bytes:
 
 
 def generate_secure_cookie(tokens: Dict) -> bytes:
-    tokens = SecureCookie(tokens, "cookie-signing-key").serialize()
-    return tokens.decode('utf-8')
+    return sym_enc.encrypt(serialise_token(tokens))
 
 def validate_secure_cookie(cookie: bytes) -> Dict:
-    return SecureCookie.unserialize(cookie.encode(), "cookie-signing-key")
+    return deserialise_token(sym_enc.decrypt(cookie))
+
+def serialise_token(tokens: Dict) -> str:
+    return json.dumps(tokens)
+
+def deserialise_token(serialised_tokens: str) -> Dict:
+    return json.loads(serialised_tokens)
