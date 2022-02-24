@@ -1,4 +1,6 @@
+import json
 from webauthn.registration import generate_registration_options as webauthn_opts
+from webauthn.registration import verify_registration_response as webauthn_verify
 from webauthn.helpers import cose, structs, options_to_json
 
 from key_management.domain import crypto
@@ -32,6 +34,19 @@ def generate(rp_id, rp_name, user_id, user_name, user_display_name, challenge) -
                                                       timeout=12000)
 
 
+def reg_credential(challenge_response: dict) -> structs.RegistrationCredential:
+    return structs.RegistrationCredential.parse_raw(json.dumps(challenge_response))
+
+def reg_verify(credential: structs.RegistrationCredential,
+               challenge: bytes,
+               expected_origin: str,
+               expected_rp_id: str,
+               require_user_verification: bool):
+        return webauthn_verify.verify_registration_response(credential=credential,
+                                                            expected_challenge=challenge,
+                                                            expected_origin=expected_origin,
+                                                            expected_rp_id=expected_rp_id,
+                                                            require_user_verification=require_user_verification)
 
 def serialise_options(options: structs.PublicKeyCredentialCreationOptions) -> str:
     return options_to_json(options)

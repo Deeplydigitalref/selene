@@ -52,6 +52,17 @@ def initiate(registration_value: value.Registration):
     # call_observers(observer.observers_for_event(value.RegistrationEvents.INITIATION, state_observers), model)
     return model, registration_value
 
+def get(uuid: str) -> value.Registration:
+    return find(uuid)
+
+def validation(challenge_response: Dict, value: value.Registration) -> value.Registration:
+    breakpoint()
+    x = webauthn_registration.validate_registraton(challenge_response, value)
+
+
+#
+# Helpers
+#
 
 def build_model_from_registration(registration_value: value.Registration) -> repo.RegistrationModel:
     return repo.RegistrationModel(uuid=registration_value.uuid,

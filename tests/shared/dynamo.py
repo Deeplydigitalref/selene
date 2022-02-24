@@ -1,8 +1,6 @@
 import pytest
-import boto3
 from moto import mock_dynamodb2
-
-from common.util import env
+import uuid
 
 @pytest.fixture
 def dynamo_mock():
@@ -18,3 +16,15 @@ def dynamo_mock():
     yield BaseModel
 
     mock_dynamodb2().stop()
+
+
+def initiated_registration(challenge):
+    from common.util import encoding_helpers
+    from common.repository import registration
+    from key_management.domain import crypto
+    model = registration.RegistrationModel(uuid=str(uuid.uuid4()),
+                                           subject_name="subject1",
+                                           registration_state="CREATED",
+                                           registration_challenge=encoding_helpers.base64url_to_bytes(challenge))
+    registration.create(model)
+    return model

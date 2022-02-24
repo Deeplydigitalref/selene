@@ -123,3 +123,21 @@ def api_registration_request_event():
             "protocol": "HTTP/1.1"
         }
     }
+
+@pytest.fixture
+def api_completion_request_event():
+    return {
+        "path": "/registration/makeCredential",
+        "body": "",
+        "queryStringParameters": {},
+        "httpMethod": "POST",
+        "headers": {
+            "Cookie": ""
+        },
+        "multiValueHeaders": {
+        },
+        "requestContext": {
+            "path": "/registration/makeCredential",
+            "httpMethod": "POST",
+        }
+    }

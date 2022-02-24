@@ -1,5 +1,4 @@
-import pytest
-from pyfuncify import span_tracer, chronos, app
+from pyfuncify import span_tracer, app
 from webauthn.helpers import structs
 
 from functions.registration.handlers import registration_initiation_handler

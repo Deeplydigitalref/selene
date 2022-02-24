@@ -1,9 +1,9 @@
 from typing import Tuple, Any
-from pyfuncify import monad, app
+from pyfuncify import monad, app, app_serialisers
 
 from common.util import error, env
 
-from .handlers import registration_initiation_handler
+from .handlers import registration_initiation_handler, registration_completion_handler
 
 # Warm Start Pattern
 from common.initialisers import aws_client_setup, parameter_store
@@ -17,10 +17,18 @@ def handle(event: dict, context: dict) -> dict:
                         handler_guard_fn=check_env_established)
 
 
-# Handles /registration/makeCredential/subject1
-@app.route(('API', 'GET', '/registration/makeCredential/{subject}'))
+# Handles GET /registration/makeCredential/subject1
+@app.route(pattern=('API', 'GET', '/registration/makeCredential/{subject}'))
 def registration_initiation(request: app.RequestEvent) -> monad.MEither:
-    return registration_initiation_handler.handle(request=request)
+    result = registration_initiation_handler.handle(request=request)
+    breakpoint()
+    return result
+
+
+# Handles POST /registration/makeCredential
+@app.route(pattern=('API', 'POST', '/registration/makeCredential'), opts={'body_parser': app_serialisers.json_parser})
+def registration_completion(request: app.RequestEvent) -> monad.MEither:
+    return registration_completion_handler.handle(request=request)
 
 
 @app.route('no_matching_route')
