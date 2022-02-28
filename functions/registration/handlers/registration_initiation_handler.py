@@ -96,20 +96,35 @@ Respond with a cookie and the generated webauthn registration parameters:
 def handle(request: app.RequestEvent) -> Either:
     _CTX['tracer'] = request.tracer
 
-    result = generate_registration_options(request) >> to_result
+    result = generate_registration_options(request) >> session_and_response
     return result
 
-def generate_registration_options(request) -> Either[app.RequestEvent]:
+def generate_registration_options(request: app.RequestEvent) -> Either[app.RequestEvent]:
+    """
+    Creates a new authn registration request.  Returning the registration domain value into the results value.
+
+    :param request:
+    :return: Either[request]
+    """
     result = command.authn_registration_initiate.invoke(request.event)
     if result.is_right():
-        request.event.web_session = result.value.registration_session
-        request.response = monad.Right(serialisers.WebAuthnRegistrationSerialiser(result.value))
+        request.results = result.value
     else:
         breakpoint()
     return monad.Right(request)
 
 
-def to_result(request) -> Either[app.RequestEvent]:
+def session_and_response(request: app.RequestEvent) -> Either[app.RequestEvent]:
+    """
+    The registration session is set in the domain value.  This is copied to the request value as the new
+    web session to be set, and the WebAuthnRegistrationSerialiser is injected to enable the response body creation
+    from the registration.
+
+    :param request:
+    :return: Either[request]
+    """
+    request.event.web_session = request.results.registration_session
+    request.response = monad.Right(serialisers.WebAuthnRegistrationSerialiser(request.results))
     return monad.Right(request)
 
 #

@@ -13,6 +13,7 @@ def invoke(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
 
 def get_registration(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
     reg = registration.get(retrieve_session_token(event.web_session))
+    reg.value.registration_session = event.web_session
     return reg
 
 @curry(2)
@@ -24,7 +25,7 @@ def validate_registration(event: app.ApiGatewayRequestEvent, registration_value:
 
 @curry(2)
 def clear_session(event: app.ApiGatewayRequestEvent, registration_value: value.Registration):
-    event.web_session.clear_all()
+    registration_value.registration_session.clear_all()
     return monad.Right(registration_value)
 
 #
