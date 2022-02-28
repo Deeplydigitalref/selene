@@ -2,7 +2,7 @@ from typing import Type
 
 from pynamodb.models import Model
 from pynamodb.attributes import (
-    UnicodeAttribute, NumberAttribute, MapAttribute, ListAttribute, UTCDateTimeAttribute, DiscriminatorAttribute
+    UnicodeAttribute, NumberAttribute, MapAttribute, ListAttribute, UTCDateTimeAttribute, DiscriminatorAttribute, JSONAttribute
 )
 
 from common.util.env import Env
@@ -24,6 +24,7 @@ class SubjectRegistration(BaseModel, discriminator='auth:subject:registration'):
     subject_name = UnicodeAttribute()
     registration_state = UnicodeAttribute()
     encoded_challenge = UnicodeAttribute()
+    credential = JSONAttribute(null=True)
 
 
 class Circuit(BaseModel, discriminator='auth:circuit'):

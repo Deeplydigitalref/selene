@@ -100,10 +100,10 @@ def handle(request: app.RequestEvent) -> Either:
     return result
 
 def generate_registration_options(request) -> Either[app.RequestEvent]:
-    result = command.authn_registration.invoke(request.event)
+    result = command.authn_registration_initiate.invoke(request.event)
     if result.is_right():
         request.event.web_session = result.value.registration_session
-        request.response = monad.Right(serialisers.WebAuthnSerialiser(result.value))
+        request.response = monad.Right(serialisers.WebAuthnRegistrationSerialiser(result.value))
     else:
         breakpoint()
     return monad.Right(request)

@@ -27,6 +27,15 @@ class Env:
     def kek():
         return os.environ.get('KEK', default=None)
 
+    @staticmethod
+    def relying_party_id():
+        return os.environ.get('RELYING_PARTY_ID', default=None)
+
+
+    @staticmethod
+    def relying_party_name():
+        return os.environ.get('RELYING_PARTY_NAME', default=None)
+
 
     @staticmethod
     def development():

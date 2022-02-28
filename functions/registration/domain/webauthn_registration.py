@@ -4,18 +4,19 @@ from pyfuncify import monad
 from webauthn.helpers import structs
 from common.domain import webauthn_helpers
 from common.repository import registration
+from common.util import env
 from . import value
 
 def registration_obligations(registration: value.Registration) -> value.Registration:
-    opts = webauthn_helpers.generate_options(rp_id=constants.RELYING_PARTY_ID,
-                                             rp_name=constants.RELYING_PARTY_NAME,
+    opts = webauthn_helpers.generate_options(rp_id=env.Env.relying_party_id(),
+                                             rp_name=env.Env.relying_party_name(),
                                              subject_name=registration.subject_name)
     registration.registration_options = opts
     return monad.Right(registration)
 
 def regenerate_opts(model: registration.RegistrationModel) -> structs.PublicKeyCredentialCreationOptions:
-    return webauthn_helpers.generate(rp_id=constants.RELYING_PARTY_ID,
-                                     rp_name=constants.RELYING_PARTY_NAME,
+    return webauthn_helpers.generate(rp_id=env.Env.relying_party_id(),
+                                     rp_name=env.Env.relying_party_name(),
                                      user_id=model.subject_name,
                                      user_name=model.subject_name,
                                      user_display_name=model.subject_name,
@@ -24,8 +25,8 @@ def regenerate_opts(model: registration.RegistrationModel) -> structs.PublicKeyC
 def validate_registraton(challenge_response: Dict, registration: value.Registration):
     return webauthn_helpers.reg_verify(credential=webauthn_helpers.reg_credential(challenge_response),
                                        challenge=registration.registration_options.challenge,
-                                       expected_origin="http://localhost:5000",
-                                       expected_rp_id="localhost",
+                                       expected_origin=env.Env.relying_party_name(),
+                                       expected_rp_id=env.Env.relying_party_id(),
                                        require_user_verification=True)
 
 

@@ -25,15 +25,11 @@ class RegistrationModel:
     subject_name: str
     registration_state: str
     registration_challenge: bytes # = field()
-    # @registration_challenge.default
-    # def _from_base64(self):
-    #     breakpoint()
-    #     return encoding_helpers.base64url_to_bytes(self.encoded_challenge)
     encoded_challenge: str = field()
     @encoded_challenge.default
     def _to_base64(self):
         return encoding_helpers.bytes_to_base64url(self.registration_challenge)
-    # model: repo.repo()
+    credential: str = field(default=None)
     repo: repo = field(default=None)
 
 
@@ -51,6 +47,16 @@ def create(model: RegistrationModel) -> RegistrationModel:
         model.repo = monad.Right(repo)
         return model
     breakpoint()
+
+def save_state_change(model: RegistrationModel) -> RegistrationModel:
+    model.repo.state = model.registration_state
+    model.repo.credential = model.credential
+    try_save = save(model.repo)
+    if try_save.is_right():
+        model.repo = monad.Right(model.repo)
+        return model
+    breakpoint()
+
 
 @monad.monadic_try()
 def save(model) -> Either[Dict]:

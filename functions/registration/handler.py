@@ -21,7 +21,6 @@ def handle(event: dict, context: dict) -> dict:
 @app.route(pattern=('API', 'GET', '/registration/makeCredential/{subject}'))
 def registration_initiation(request: app.RequestEvent) -> monad.MEither:
     result = registration_initiation_handler.handle(request=request)
-    breakpoint()
     return result
 
 

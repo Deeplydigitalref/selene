@@ -18,7 +18,7 @@ def test_successful_registration_initiation(api_registration_request_event,
 
     response = handler.handle(event=api_registration_request_event, context={})
 
-    expected_body_part = '{"rp": {"name": "Example Co", "id": "example.com"}, "user": {"id": "c3ViamVjdDE", "name": "subject1", "displayName": "subject1"}'
+    expected_body_part = '{"rp": {"name": "http://localhost:5000", "id": "localhost"}, "user": {"id": "c3ViamVjdDE", "name": "subject1", "displayName": "subject1"}'
 
     assert response['statusCode'] == 200
     assert response['headers']['Content-Type'] == "application/json"
@@ -38,7 +38,7 @@ def it_adds_a_cookie_referencing_the_regsitration(api_registration_request_event
 
 
 #
-# Route = registration completation
+# Route = registration completion
 #
 def it_handles_a_successful_registration_completion(api_completion_request_event,
                                                     ssm_setup,
@@ -51,9 +51,9 @@ def it_handles_a_successful_registration_completion(api_completion_request_event
 
     response = handler.handle(event=event, context={})
 
-    assert response['statusCode'] == 200
+    assert response['statusCode'] == 201
     assert response['headers']['Content-Type'] == "application/json"
-    assert response['body'] == {}
+    assert response['body'] == '{}'
 
 
     pass
@@ -77,9 +77,10 @@ def create_reg_in_created_state():
 
 def add_reg_cookie_to_event(event, reg_uuid):
     from pyfuncify import app_web_session
-    cookie = app_web_session.WebSession().set(constants.SESSION_ID, crypto.generate_secure_cookie({"regid": reg_uuid}))\
-                            .get(constants.SESSION_ID)\
-                            .serialise()
+    attrs = {'max-age': 60*5}
+    cookie = (app_web_session.WebSession().set(constants.SESSION_ID, crypto.generate_secure_cookie({"regid": reg_uuid}), attrs)
+                             .get(constants.SESSION_ID)
+                             .serialise())
     # Lets assume the cookie will end up in the headers and not multiValueHeaders
     event['headers']['Cookie'] = cookie
     return event

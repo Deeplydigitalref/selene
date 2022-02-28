@@ -8,7 +8,7 @@ from key_management.domain import crypto
 
 
 def invoke(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
-    result = get_registration(event) >> validate_registration(event) >> complete_registration >> set_session
+    result = get_registration(event) >> validate_registration(event) >> clear_session(event)
     return result
 
 def get_registration(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
@@ -17,24 +17,19 @@ def get_registration(event: app.ApiGatewayRequestEvent) -> Either[value.Registra
 
 @curry(2)
 def validate_registration(event: app.ApiGatewayRequestEvent, registration_value: value.Registration) -> Either[value.Registration]:
-    result = monad.Right(registration.validation(event.body, registration_value))
-    breakpoint()
-
-
-def complete_registration(registration_value: value.Registration) -> Either[value.Registration]:
-    result = registration.initiate(registration_value)
+    result = registration.validation(event.body, registration_value)
     if result.is_right():
         return result
     breakpoint()
 
+@curry(2)
+def clear_session(event: app.ApiGatewayRequestEvent, registration_value: value.Registration):
+    event.web_session.clear_all()
+    return monad.Right(registration_value)
+
 #
 # Helpers
 #
-
-def set_session(registration_value: value.Registration) -> Either[value.Registration]:
-    registration_value.registration_session = session_token(registration_value.uuid)
-
-    return monad.Right(registration_value)
 
 def retrieve_session_token(web_session) -> str:
     return web_session.get(constants.SESSION_ID, decrypt_and_extract_reg_id).value()

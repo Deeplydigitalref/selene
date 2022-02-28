@@ -28,7 +28,7 @@ def test_returns_a_seialisable_result(api_registration_request_event,
 
     result = request.event.request_function(request).value.response.value
 
-    assert isinstance(result, serialisers.WebAuthnSerialiser)
+    assert isinstance(result, serialisers.WebAuthnRegistrationSerialiser)
 
     serialised_result = result.serialise()
 

@@ -29,6 +29,8 @@ def set_up_parameter_store(depth):
     ssm = boto3.client('ssm', region_name=env.Env.region_name)
     ssm.put_parameter(Name="{}/environment/DYNAMODB_TABLE".format(env.Env.parameter_store_path()), Value="selenedb", Type="String")
     ssm.put_parameter(Name="{}/environment/KEK".format(env.Env.parameter_store_path()), Value=kek.create_kek(), Type="String")
+    ssm.put_parameter(Name="{}/environment/RELYING_PARTY_ID".format(env.Env.parameter_store_path()), Value="localhost", Type="String")
+    ssm.put_parameter(Name="{}/environment/RELYING_PARTY_NAME".format(env.Env.parameter_store_path()), Value="http://localhost:5000", Type="String")
 
 
 @pytest.fixture
@@ -41,6 +43,11 @@ def set_up_env():
     """
     from common.initialisers import aws_client_setup, parameter_store
     pass
+
+@pytest.fixture
+def set_up_env_without_ssm():
+    os.environ['RELYING_PARTY_ID'] = "localhost"
+    os.environ['RELYING_PARTY_NAME'] = "http://localhost:5000"
 
 
 @pytest.fixture

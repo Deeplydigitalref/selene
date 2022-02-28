@@ -11,17 +11,20 @@ def it_creates_new_registration():
     assert isinstance(reg, value.Registration)
     assert reg.subject_name == 'test1'
 
-def it_creates_the_new_reg_in_new_state(new_reg):
+def it_creates_the_new_reg_in_new_state(set_up_env_without_ssm,
+                                        new_reg):
     assert new_reg.registration_state == value.RegistrationStates.NEW
 
-def it_successfully_adds_webauthn_reg_options(new_reg):
+def it_successfully_adds_webauthn_reg_options(set_up_env_without_ssm,
+                                              new_reg):
     reg = registration.registration_obligations(new_reg)
 
     assert reg.is_right()
     assert isinstance(reg.value.registration_options, structs.PublicKeyCredentialCreationOptions)
 
 
-def it_sets_the_reg_into_initiated_state(new_reg,
+def it_sets_the_reg_into_initiated_state(set_up_env_without_ssm,
+                                         new_reg,
                                          dynamo_mock,
                                          set_up_env):
     initiated_reg = registration.initiate(registration.registration_obligations(new_reg).value)
@@ -36,7 +39,8 @@ def it_persists_the_created_reg(reg_with_options,
     reg = registration.find(reg_with_options.uuid)
 
     assert reg.is_right()
-    assert reg.value == reg_with_options
+    assert reg.value.uuid == reg_with_options.uuid
+    assert reg.value.registration_options == reg_with_options.registration_options
 
 
 

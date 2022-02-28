@@ -20,10 +20,17 @@ reg_state_map = state_machine.state_transition_map([
 
 
 #
-# State Transition Finialisers
+# Finialisers
 #
 def commit(model: repo.RegistrationModel, registration: value.Registration):
     result = repo.create(model)
+    if result.repo.is_right():
+        return monad.Right(registration)
+    breakpoint()
+    return result
+
+def complete(model: repo.RegistrationModel, registration: value.Registration):
+    result = repo.save_state_change(model)
     if result.repo.is_right():
         return monad.Right(registration)
     breakpoint()
@@ -52,13 +59,20 @@ def initiate(registration_value: value.Registration):
     # call_observers(observer.observers_for_event(value.RegistrationEvents.INITIATION, state_observers), model)
     return model, registration_value
 
+
 def get(uuid: str) -> value.Registration:
     return find(uuid)
 
-def validation(challenge_response: Dict, value: value.Registration) -> value.Registration:
+@layer.finaliser(finaliser_fn=complete)
+def validation(challenge_response: Dict, registration_value: value.Registration) -> value.Registration:
+    reg_validation = webauthn_registration.validate_registraton(challenge_response, registration_value)
+    if reg_validation.user_verified:
+        registration_value.verified_registration = reg_validation
+        registration_value.registration_state = registration_transition(registration_value.registration_state,
+                                                                        value.RegistrationEvents.COMPLETION).value
+        registration_value.model = complete_valid_registration_model(registration_value)
+        return registration_value.model, registration_value
     breakpoint()
-    x = webauthn_registration.validate_registraton(challenge_response, value)
-
 
 #
 # Helpers
@@ -69,6 +83,13 @@ def build_model_from_registration(registration_value: value.Registration) -> rep
                                   subject_name=registration_value.subject_name,
                                   registration_state=registration_value.registration_state.name,
                                   registration_challenge=registration_value.registration_options.challenge)
+
+def complete_valid_registration_model(registration_value: value.Registration) -> repo.RegistrationModel:
+    model = registration_value.model.value
+    model.registration_state = registration_value.registration_state.name
+    model.credential = registration_value.verified_registration.json()
+    return model
+
 
 def find(uuid: str) -> value.Registration:
     return to_domain(repo.find_by_uuid(uuid))
@@ -81,7 +102,8 @@ def to_domain(model: Either[repo.RegistrationModel]):
                                           subject_name=model.value.subject_name,
                                           authn_candidate=value.AuthType.WEBAUTHN,
                                           registration_state=value.RegistrationStates[model.value.registration_state],
-                                          registration_options=webauthn_registration.regenerate_opts(model.value)))
+                                          registration_options=webauthn_registration.regenerate_opts(model.value),
+                                          model=model))
 
 
 #
