@@ -24,7 +24,7 @@ def test_successful_registration_initiation(api_registration_request_event,
     assert response['headers']['Content-Type'] == "application/json"
     assert expected_body_part in response['body']
 
-def it_adds_a_cookie_referencing_the_regsitration(api_registration_request_event,
+def it_adds_a_cookie_referencing_the_registration(api_registration_request_event,
                                                   ssm_setup,
                                                   dynamo_mock,
                                                   set_up_key_management,
@@ -54,9 +54,6 @@ def it_handles_a_successful_registration_completion(api_completion_request_event
     assert response['statusCode'] == 201
     assert response['headers']['Content-Type'] == "application/json"
     assert response['body'] == '{}'
-
-
-    pass
 
 
 #

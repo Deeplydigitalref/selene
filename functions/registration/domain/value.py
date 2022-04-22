@@ -3,7 +3,7 @@ from webauthn.helpers import structs
 from webauthn.registration import verify_registration_response as webauthn_verify  # A bit coupled to be here
 from enum import Enum
 
-from common.repository import registration
+from common.repository import webauthn_registration
 
 # Reg States, transitions, and state machine
 class RegistrationStates(Enum):
@@ -35,5 +35,5 @@ class Registration():
     registration_options: structs.PublicKeyCredentialCreationOptions = field(default=None)
     registration_session: str = field(default=None)
     verified_registration: webauthn_verify.VerifiedRegistration = field(default=None)
-    model: registration.RegistrationModel = field(default=None)
+    model: webauthn_registration.RegistrationModel = field(default=None)
 

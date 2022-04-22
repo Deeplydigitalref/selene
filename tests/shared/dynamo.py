@@ -1,11 +1,11 @@
 import pytest
-from moto import mock_dynamodb2
+from moto import mock_dynamodb
 import uuid
+
 
 @pytest.fixture
 def dynamo_mock():
-
-    mock_dynamodb2().start()
+    mock_dynamodb().start()
 
     from common.model.base_model import BaseModel
 
@@ -15,16 +15,17 @@ def dynamo_mock():
 
     yield BaseModel
 
-    mock_dynamodb2().stop()
+    mock_dynamodb().stop()
 
 
 def initiated_registration(challenge):
     from common.util import encoding_helpers
-    from common.repository import registration
+    from common.repository import webauthn_registration
     from key_management.domain import crypto
-    model = registration.RegistrationModel(uuid=str(uuid.uuid4()),
-                                           subject_name="subject1",
-                                           registration_state="CREATED",
-                                           registration_challenge=encoding_helpers.base64url_to_bytes(challenge))
-    registration.create(model)
+    model = webauthn_registration.RegistrationModel(uuid=str(uuid.uuid4()),
+                                                    subject_name="subject1",
+                                                    registration_state="CREATED",
+                                                    registration_challenge=encoding_helpers.base64url_to_bytes(
+                                                        challenge))
+    webauthn_registration.create(model)
     return model

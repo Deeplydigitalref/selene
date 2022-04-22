@@ -20,7 +20,7 @@ class BaseModel(Model):
     SK = UnicodeAttribute(range_key=True)
     kind = DiscriminatorAttribute()
 
-class SubjectRegistration(BaseModel, discriminator='auth:subject:registration'):
+class WebAuthnSubjectRegistration(BaseModel, discriminator='auth:subject:webAuthnRegistration'):
     subject_name = UnicodeAttribute()
     registration_state = UnicodeAttribute()
     encoded_challenge = UnicodeAttribute()

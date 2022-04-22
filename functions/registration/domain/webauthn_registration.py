@@ -3,7 +3,7 @@ from common.domain import constants
 from pyfuncify import monad
 from webauthn.helpers import structs
 from common.domain import webauthn_helpers
-from common.repository import registration
+from common.repository import webauthn_registration
 from common.util import env
 from . import value
 
@@ -14,7 +14,7 @@ def registration_obligations(registration: value.Registration) -> value.Registra
     registration.registration_options = opts
     return monad.Right(registration)
 
-def regenerate_opts(model: registration.RegistrationModel) -> structs.PublicKeyCredentialCreationOptions:
+def regenerate_opts(model: webauthn_registration.RegistrationModel) -> structs.PublicKeyCredentialCreationOptions:
     return webauthn_helpers.generate(rp_id=env.Env.relying_party_id(),
                                      rp_name=env.Env.relying_party_name(),
                                      user_id=model.subject_name,
@@ -22,7 +22,7 @@ def regenerate_opts(model: registration.RegistrationModel) -> structs.PublicKeyC
                                      user_display_name=model.subject_name,
                                      challenge=model.registration_challenge)
 
-def validate_registraton(challenge_response: Dict, registration: value.Registration):
+def validate_registration(challenge_response: Dict, registration: value.Registration):
     return webauthn_helpers.reg_verify(credential=webauthn_helpers.reg_credential(challenge_response),
                                        challenge=registration.registration_options.challenge,
                                        expected_origin=env.Env.relying_party_name(),

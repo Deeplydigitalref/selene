@@ -46,7 +46,7 @@ def request_builder(request) -> monad.Either:
 
 def pip(request):
     """
-    No PIP injected as the only route is from S3.
+    No PIP as the registration process is required before subjects are created
 
     :param request:
     :return: Either

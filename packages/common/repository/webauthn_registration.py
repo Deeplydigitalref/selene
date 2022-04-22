@@ -5,6 +5,7 @@ from attrs import define, field
 from ..typing.custom_types import Either
 from ..model import base_model
 from ..util import encoding_helpers
+
 """
 Data Model:
 
@@ -13,7 +14,7 @@ Registration:  Tracking the registration workflow for a subject.
 + SK: META#{subject-name}
 """
 
-repo = base_model.SubjectRegistration
+repo = base_model.WebAuthnSubjectRegistration
 
 
 @define
@@ -24,11 +25,13 @@ class RegistrationModel:
     uuid: str
     subject_name: str
     registration_state: str
-    registration_challenge: bytes # = field()
+    registration_challenge: bytes  # = field()
     encoded_challenge: str = field()
+
     @encoded_challenge.default
     def _to_base64(self):
         return encoding_helpers.bytes_to_base64url(self.registration_challenge)
+
     credential: str = field(default=None)
     repo: repo = field(default=None)
 
@@ -36,11 +39,11 @@ class RegistrationModel:
 def create(model: RegistrationModel) -> RegistrationModel:
     pk = format_registration_pk(model.uuid)
     sk = format_registration_sk(model.uuid)
-    repo = base_model.SubjectRegistration(hash_key=pk,
-                                          range_key=sk,
-                                          subject_name=model.subject_name,
-                                          registration_state=model.registration_state,
-                                          encoded_challenge=model.encoded_challenge)
+    repo = base_model.WebAuthnSubjectRegistration(hash_key=pk,
+                                                  range_key=sk,
+                                                  subject_name=model.subject_name,
+                                                  registration_state=model.registration_state,
+                                                  encoded_challenge=model.encoded_challenge)
     try_save = save(repo)
 
     if try_save.is_right():
@@ -48,7 +51,8 @@ def create(model: RegistrationModel) -> RegistrationModel:
         return model
     breakpoint()
 
-def save_state_change(model: RegistrationModel) -> RegistrationModel:
+
+def completed_state_change(model: RegistrationModel) -> RegistrationModel:
     model.repo.state = model.registration_state
     model.repo.credential = model.credential
     try_save = save(model.repo)
@@ -62,12 +66,14 @@ def save_state_change(model: RegistrationModel) -> RegistrationModel:
 def save(model) -> Either[Dict]:
     return model.save()
 
+
 @monad.monadic_try()
 def find_by_uuid(uuid: str) -> Either[RegistrationModel]:
-    return model_from_repo(uuid, base_model.SubjectRegistration.get(hash_key=format_registration_pk(uuid),
-                                                                    range_key=format_registration_sk(uuid)))
+    return model_from_repo(uuid, base_model.WebAuthnSubjectRegistration.get(hash_key=format_registration_pk(uuid),
+                                                                            range_key=format_registration_sk(uuid)))
 
-def model_from_repo(uuid: str, repo: base_model.SubjectRegistration) -> RegistrationModel:
+
+def model_from_repo(uuid: str, repo: base_model.WebAuthnSubjectRegistration) -> RegistrationModel:
     return RegistrationModel(uuid=uuid,
                              subject_name=repo.subject_name,
                              registration_state=repo.registration_state,
@@ -75,28 +81,10 @@ def model_from_repo(uuid: str, repo: base_model.SubjectRegistration) -> Registra
                              encoded_challenge=repo.encoded_challenge,
                              repo=repo)
 
+
 def format_registration_pk(uuid):
-    return "REG#{}".format(uuid)
+    return "WEB#{}".format(uuid)
+
 
 def format_registration_sk(uuid):
-    return "REG#META#{}".format(uuid)
-
-
-def put_registration(registration_id: str,
-                     subject_name: str,
-                     tracer) -> None:
-    pk = format_event_pk(unique_event_identity['event_time'])
-    sk = format_event_sk(unique_event_identity)
-
-    logger.log(level='info', msg='Put Event', tracer=tracer, ctx={'pk': pk, 'sk': sk})
-
-    repo = base_model.Event(hash_key=pk,
-                            range_key=sk,
-                            event_time=event_time,
-                            event_uuid=event_uuid,
-                            bucket=bucket,
-                            event_identifiers=coerse_identifiers(event_identifiers),
-                            key=key)
-    repo.save()
-    # TODO: errors on save
-    pass
+    return "WEB#META#{}".format(uuid)

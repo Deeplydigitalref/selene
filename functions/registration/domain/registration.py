@@ -5,7 +5,7 @@ import uuid
 
 from pyfuncify import state_machine, monad
 
-from common.repository import registration as repo
+from common.repository import webauthn_registration as repo
 from common.typing.custom_types import Either
 from common.util import observer, layer
 
@@ -29,8 +29,8 @@ def commit(model: repo.RegistrationModel, registration: value.Registration):
     breakpoint()
     return result
 
-def complete(model: repo.RegistrationModel, registration: value.Registration):
-    result = repo.save_state_change(model)
+def save_completed(model: repo.RegistrationModel, registration: value.Registration):
+    result = repo.completed_state_change(model)
     if result.repo.is_right():
         return monad.Right(registration)
     breakpoint()
@@ -63,9 +63,9 @@ def initiate(registration_value: value.Registration):
 def get(uuid: str) -> value.Registration:
     return find(uuid)
 
-@layer.finaliser(finaliser_fn=complete)
+@layer.finaliser(finaliser_fn=save_completed)
 def validation(challenge_response: Dict, registration_value: value.Registration) -> value.Registration:
-    reg_validation = webauthn_registration.validate_registraton(challenge_response, registration_value)
+    reg_validation = webauthn_registration.validate_registration(challenge_response, registration_value)
     if reg_validation.user_verified:
         registration_value.verified_registration = reg_validation
         registration_value.registration_state = registration_transition(registration_value.registration_state,

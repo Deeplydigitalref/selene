@@ -21,6 +21,7 @@ attrs = "^21.4.0"
 cryptography = "^36.0.1"
 jwcrypto = "^1.0"
 simple-memory-cache = "^1.0.0"
+pendulum = "^2.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
