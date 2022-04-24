@@ -1,30 +1,29 @@
 from pyfuncify import monad, app, app_web_session
 
-from ..domain import registration, value
-from common.typing.custom_types import Either
+from common.domain.subject import registration, value
 from common.domain import constants
 from key_management.domain import crypto
 
 
-def invoke(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
+def invoke(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.Registration]:
     result = new_registration(event) >> auth_factory >> initiate_registration >> set_session
     return result
 
-def new_registration(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
+def new_registration(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.Registration]:
     return monad.Right(registration.new(subject_name=event.path_params['subject']))
 
-def auth_factory(registration_value: value.Registration) -> Either[value.Registration]:
+def auth_factory(registration_value: value.Registration) -> monad.EitherMonad[value.Registration]:
     result = registration.registration_obligations(registration_value)
 
     return result
 
-def initiate_registration(registration_value: value.Registration) -> Either[value.Registration]:
+def initiate_registration(registration_value: value.Registration) -> monad.EitherMonad[value.Registration]:
     result = registration.initiate(registration_value)
     if result.is_right():
         return result
     breakpoint()
 
-def set_session(registration_value: value.Registration) -> Either[value.Registration]:
+def set_session(registration_value: value.Registration) -> monad.EitherMonad[value.Registration]:
     registration_value.registration_session = build_session_token(registration_value.uuid)
 
     return monad.Right(registration_value)

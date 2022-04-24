@@ -1,27 +1,34 @@
 from pyfuncify import monad, app
 from pymonad.tools import curry
 
-from ..domain import registration, value
-from common.typing.custom_types import Either
+from common.domain.subject import registration, value
 from common.domain import constants
 from key_management.domain import crypto
 
 
-def invoke(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
-    result = get_registration(event) >> validate_registration(event) >> clear_session(event)
+def invoke(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.Registration]:
+    result = get_registration(event) >> complete_registration(event) >> clear_session(event)
     return result
 
-def get_registration(event: app.ApiGatewayRequestEvent) -> Either[value.Registration]:
+def get_registration(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.Registration]:
     reg = registration.get(retrieve_session_token(event.web_session))
     reg.value.registration_session = event.web_session
     return reg
 
 @curry(2)
-def validate_registration(event: app.ApiGatewayRequestEvent, registration_value: value.Registration) -> Either[value.Registration]:
-    result = registration.validation(event.body, registration_value)
+def complete_registration(event: app.ApiGatewayRequestEvent, registration_value: value.Registration) -> monad.EitherMonad[
+    value.Registration]:
+    result = registration.complete_registration(event.body, registration_value)
     if result.is_right():
         return result
     breakpoint()
+
+
+# def onboard_subject(registration_value: value.Registration) -> monad.EitherMonad[value.Registration]:
+#     result = subject.new_from_registration(registration_value)
+#     if result.is_right():
+#         return monad.Right(registration_value)
+#     breakpoint()
 
 @curry(2)
 def clear_session(event: app.ApiGatewayRequestEvent, registration_value: value.Registration):

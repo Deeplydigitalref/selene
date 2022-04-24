@@ -1,10 +1,7 @@
 import uuid
 from typing import Dict
-from pymonad.tools import curry
+from pyfuncify import monad, app
 
-from pyfuncify import fn, monad, logger, app
-
-from common.typing.custom_types import Either
 from common.util import serialisers
 
 from .. import command
@@ -93,18 +90,18 @@ Respond with a cookie and the generated webauthn registration parameters:
 
 """
 
-def handle(request: app.RequestEvent) -> Either:
+def handle(request: app.RequestEvent) -> monad.EitherMonad:
     _CTX['tracer'] = request.tracer
 
     result = generate_registration_options(request) >> session_and_response
     return result
 
-def generate_registration_options(request: app.RequestEvent) -> Either[app.RequestEvent]:
+def generate_registration_options(request: app.RequestEvent) -> monad.EitherMonad[app.RequestEvent]:
     """
     Creates a new authn registration request.  Returning the registration domain value into the results value.
 
     :param request:
-    :return: Either[request]
+    :return: monad.EitherMonad[request]
     """
     result = command.authn_registration_initiate.invoke(request.event)
     if result.is_right():
@@ -114,14 +111,14 @@ def generate_registration_options(request: app.RequestEvent) -> Either[app.Reque
     return monad.Right(request)
 
 
-def session_and_response(request: app.RequestEvent) -> Either[app.RequestEvent]:
+def session_and_response(request: app.RequestEvent) -> monad.EitherMonad[app.RequestEvent]:
     """
     The registration session is set in the domain value.  This is copied to the request value as the new
     web session to be set, and the WebAuthnRegistrationSerialiser is injected to enable the response body creation
     from the registration.
 
     :param request:
-    :return: Either[request]
+    :return: monad.EitherMonad[request]
     """
     request.event.web_session = request.results.registration_session
     request.response = monad.Right(serialisers.WebAuthnRegistrationSerialiser(request.results))

@@ -3,7 +3,8 @@ from webauthn.helpers import structs
 from webauthn.registration import verify_registration_response as webauthn_verify  # A bit coupled to be here
 from enum import Enum
 
-from common.repository import webauthn_registration
+from common.repository.subject import webauthn_registration
+from common.domain.subject import subject as sub
 
 # Reg States, transitions, and state machine
 class RegistrationStates(Enum):
@@ -24,14 +25,16 @@ class AuthType(Enum):
 
 
 @define
-class Registration():
+class Registration:
     """
     The Value object passed between the domain and the commands
     """
     uuid: str
     subject_name: str
     authn_candidate: AuthType
-    registration_state: RegistrationStates = field(default=None)
+    subject: sub.Subject = field(default=None)
+    sub: str = field(default=None)
+    state: RegistrationStates = field(default=None)
     registration_options: structs.PublicKeyCredentialCreationOptions = field(default=None)
     registration_session: str = field(default=None)
     verified_registration: webauthn_verify.VerifiedRegistration = field(default=None)

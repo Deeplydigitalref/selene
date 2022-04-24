@@ -21,10 +21,18 @@ class BaseModel(Model):
     kind = DiscriminatorAttribute()
 
 class WebAuthnSubjectRegistration(BaseModel, discriminator='auth:subject:webAuthnRegistration'):
+    reg_uuid = UnicodeAttribute()
     subject_name = UnicodeAttribute()
-    registration_state = UnicodeAttribute()
+    sub = UnicodeAttribute(null=True)
+    state = UnicodeAttribute()
     encoded_challenge = UnicodeAttribute()
     credential = JSONAttribute(null=True)
+
+class Subject(BaseModel, discriminator='auth:subject:subject'):
+    sub = UnicodeAttribute()
+    subject_name = UnicodeAttribute()
+    state = UnicodeAttribute()
+    registrations = ListAttribute()
 
 
 class Circuit(BaseModel, discriminator='auth:circuit'):

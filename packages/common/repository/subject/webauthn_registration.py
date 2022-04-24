@@ -2,9 +2,8 @@ from typing import Dict
 from pyfuncify import logger, monad
 from attrs import define, field
 
-from ..typing.custom_types import Either
-from ..model import base_model
-from ..util import encoding_helpers
+from common.model import base_model
+from common.util import encoding_helpers
 
 """
 Data Model:
@@ -24,9 +23,10 @@ class RegistrationModel:
     """
     uuid: str
     subject_name: str
-    registration_state: str
+    state: str
     registration_challenge: bytes  # = field()
     encoded_challenge: str = field()
+    sub: str = field(default=None)
 
     @encoded_challenge.default
     def _to_base64(self):
@@ -41,8 +41,10 @@ def create(model: RegistrationModel) -> RegistrationModel:
     sk = format_registration_sk(model.uuid)
     repo = base_model.WebAuthnSubjectRegistration(hash_key=pk,
                                                   range_key=sk,
+                                                  reg_uuid=model.uuid,
                                                   subject_name=model.subject_name,
-                                                  registration_state=model.registration_state,
+                                                  sub=None,
+                                                  state=model.state,
                                                   encoded_challenge=model.encoded_challenge)
     try_save = save(repo)
 
@@ -53,8 +55,14 @@ def create(model: RegistrationModel) -> RegistrationModel:
 
 
 def completed_state_change(model: RegistrationModel) -> RegistrationModel:
-    model.repo.state = model.registration_state
+    """
+    Adds the credential and sets the completion state
+    :param model:
+    :return RegistrationModel:
+    """
+    model.repo.state = model.state
     model.repo.credential = model.credential
+    model.repo.sub = model.sub
     try_save = save(model.repo)
     if try_save.is_right():
         model.repo = monad.Right(model.repo)
@@ -63,20 +71,21 @@ def completed_state_change(model: RegistrationModel) -> RegistrationModel:
 
 
 @monad.monadic_try()
-def save(model) -> Either[Dict]:
+def save(model) -> monad.EitherMonad[Dict]:
     return model.save()
 
 
 @monad.monadic_try()
-def find_by_uuid(uuid: str) -> Either[RegistrationModel]:
-    return model_from_repo(uuid, base_model.WebAuthnSubjectRegistration.get(hash_key=format_registration_pk(uuid),
-                                                                            range_key=format_registration_sk(uuid)))
+def find_by_uuid(uuid: str) -> monad.EitherMonad[RegistrationModel]:
+    return model_from_repo(base_model.WebAuthnSubjectRegistration.get(hash_key=format_registration_pk(uuid),
+                                                                      range_key=format_registration_sk(uuid)))
 
 
-def model_from_repo(uuid: str, repo: base_model.WebAuthnSubjectRegistration) -> RegistrationModel:
-    return RegistrationModel(uuid=uuid,
+def model_from_repo(repo: base_model.WebAuthnSubjectRegistration) -> RegistrationModel:
+    return RegistrationModel(uuid=repo.reg_uuid,
                              subject_name=repo.subject_name,
-                             registration_state=repo.registration_state,
+                             sub=repo.sub,
+                             state=repo.state,
                              registration_challenge=encoding_helpers.base64url_to_bytes(repo.encoded_challenge),
                              encoded_challenge=repo.encoded_challenge,
                              repo=repo)

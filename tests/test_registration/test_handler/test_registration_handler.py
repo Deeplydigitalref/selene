@@ -3,10 +3,11 @@ from webauthn.helpers import structs
 
 from functions.registration.handlers import registration_initiation_handler
 from functions.registration.handlers import registration_completion_handler
-from functions.registration.domain import value
-from common.util import env, serialisers
+from common.domain.subject import registration, value, subject
+from common.util import serialisers
 
 from tests.shared import *
+
 
 #
 # Registration Initiation
@@ -52,7 +53,8 @@ def test_provides_registration_options_for_return(api_registration_request_event
 
     assert reg_opts.subject_name == 'subject1'
     assert isinstance(reg_opts.registration_options, structs.PublicKeyCredentialCreationOptions)
-    assert reg_opts.registration_state == value.RegistrationStates.CREATED
+    assert reg_opts.state == value.RegistrationStates.CREATED
+
 
 #
 # Registration Completion
@@ -62,7 +64,6 @@ def it_handles_a_successful_registration_completion(api_completion_request_event
                                                     dynamo_mock,
                                                     set_up_key_management,
                                                     set_up_env):
-
     request = request_builder(set_up_event_and_reg(api_completion_request_event, registration_completion_usb()))
 
     result = request.event.request_function(request)
@@ -72,6 +73,35 @@ def it_handles_a_successful_registration_completion(api_completion_request_event
     assert result.value.response.is_right()
     assert result.value.response.value.serialise() == '{}'
 
+
+def it_sets_the_webauthn_reg_to_complete(api_completion_request_event,
+                                         ssm_setup,
+                                         dynamo_mock,
+                                         set_up_key_management,
+                                         set_up_env):
+    request = request_builder(set_up_event_and_reg(api_completion_request_event, registration_completion_usb()))
+
+    result = request.event.request_function(request)
+
+    reg = registration.get(result.value.results.uuid)
+
+    assert reg.is_right()
+    assert reg.value.state == value.RegistrationStates.COMPLETED
+
+
+def it_creates_a_new_subject(api_completion_request_event,
+                             ssm_setup,
+                             dynamo_mock,
+                             set_up_key_management,
+                             set_up_env):
+    request = request_builder(set_up_event_and_reg(api_completion_request_event, registration_completion_usb()))
+
+    result = request.event.request_function(request)
+
+    reg = registration.get(result.value.results.uuid, reify=(subject.Subject, subject.from_registration))
+
+    assert reg.is_right()
+    assert reg.value.subject.state == subject.States.CREATED
 
 
 #

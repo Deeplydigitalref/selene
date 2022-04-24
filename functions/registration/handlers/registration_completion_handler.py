@@ -4,7 +4,6 @@ from pymonad.tools import curry
 
 from pyfuncify import fn, monad, logger, app, app_value
 
-from common.typing.custom_types import Either
 from common.util import serialisers
 
 from .. import command
@@ -17,13 +16,13 @@ instrumentables = []
 """
 """
 
-def handle(request: app.RequestEvent) -> Either:
+def handle(request: app.RequestEvent) -> monad.EitherMonad:
     _CTX['tracer'] = request.tracer
 
     result = complete_registration(request) >> session_and_response
     return result
 
-def complete_registration(request: app.RequestEvent) -> Either[app.RequestEvent]:
+def complete_registration(request: app.RequestEvent) -> monad.EitherMonad[app.RequestEvent]:
     result = command.authn_registration_complete.invoke(request.event)
     if result.is_right():
         request.results = result.value
@@ -32,14 +31,14 @@ def complete_registration(request: app.RequestEvent) -> Either[app.RequestEvent]
     return monad.Right(request)
 
 
-def session_and_response(request: app.RequestEvent) -> Either[app.RequestEvent]:
+def session_and_response(request: app.RequestEvent) -> monad.EitherMonad[app.RequestEvent]:
     """
     The registration session is set in the domain value.  This is copied to the request value as the new
     web session to be set, and the WebAuthnRegistrationSerialiser is injected to enable the response body creation
     from the registration.
 
     :param request:
-    :return: Either[request]
+    :return: monad.EitherMonad[request]
     """
     request.status_code = app_value.HttpStatusCode.CREATED
     request.event.web_session = request.results.registration_session

@@ -2,7 +2,7 @@ import pytest
 
 from webauthn.helpers import structs
 
-from functions.registration.domain import registration, value
+from common.domain.subject import registration, value
 
 
 def it_creates_new_registration():
@@ -13,7 +13,7 @@ def it_creates_new_registration():
 
 def it_creates_the_new_reg_in_new_state(set_up_env_without_ssm,
                                         new_reg):
-    assert new_reg.registration_state == value.RegistrationStates.NEW
+    assert new_reg.state == value.RegistrationStates.NEW
 
 def it_successfully_adds_webauthn_reg_options(set_up_env_without_ssm,
                                               new_reg):
@@ -30,7 +30,7 @@ def it_sets_the_reg_into_initiated_state(set_up_env_without_ssm,
     initiated_reg = registration.initiate(registration.registration_obligations(new_reg).value)
 
     assert initiated_reg.is_right()
-    assert initiated_reg.value.registration_state == value.RegistrationStates.CREATED
+    assert initiated_reg.value.state == value.RegistrationStates.CREATED
 
 def it_persists_the_created_reg(reg_with_options,
                                 dynamo_mock,

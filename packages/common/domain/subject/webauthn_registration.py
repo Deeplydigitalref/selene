@@ -1,11 +1,11 @@
 from typing import Dict
-from common.domain import constants
 from pyfuncify import monad
 from webauthn.helpers import structs
 from common.domain import webauthn_helpers
-from common.repository import webauthn_registration
+from common.repository.subject import webauthn_registration
 from common.util import env
-from . import value
+from common.domain.subject import value
+
 
 def registration_obligations(registration: value.Registration) -> value.Registration:
     opts = webauthn_helpers.generate_options(rp_id=env.Env.relying_party_id(),
