@@ -6,18 +6,18 @@ from common.domain import constants
 from key_management.domain import crypto
 
 
-def invoke(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.Registration]:
+def invoke(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.WebAuthnRegistration]:
     result = get_registration(event) >> complete_registration(event) >> clear_session(event)
     return result
 
-def get_registration(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.Registration]:
+def get_registration(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.WebAuthnRegistration]:
     reg = registration.get(retrieve_session_token(event.web_session))
     reg.value.registration_session = event.web_session
     return reg
 
 @curry(2)
-def complete_registration(event: app.ApiGatewayRequestEvent, registration_value: value.Registration) -> monad.EitherMonad[
-    value.Registration]:
+def complete_registration(event: app.ApiGatewayRequestEvent, registration_value: value.WebAuthnRegistration) -> monad.EitherMonad[
+    value.WebAuthnRegistration]:
     result = registration.complete_registration(event.body, registration_value)
     if result.is_right():
         return result
@@ -31,7 +31,7 @@ def complete_registration(event: app.ApiGatewayRequestEvent, registration_value:
 #     breakpoint()
 
 @curry(2)
-def clear_session(event: app.ApiGatewayRequestEvent, registration_value: value.Registration):
+def clear_session(event: app.ApiGatewayRequestEvent, registration_value: value.WebAuthnRegistration):
     registration_value.registration_session.clear_all()
     return monad.Right(registration_value)
 

@@ -13,6 +13,7 @@ class SubjectModel:
     """
     uuid: str
     subject_name: str
+    is_class_of: str
     state: str
     registrations: List
     repo: repo = field(default=None)
@@ -22,6 +23,7 @@ def create(model: SubjectModel) -> SubjectModel:
     repo = base_model.Subject(hash_key=sub_pk(model.uuid),
                               range_key=sub_sk(model.uuid),
                               state=model.state,
+                              is_class_of=model.is_class_of,
                               sub=model.uuid,
                               subject_name=model.subject_name,
                               registrations=model.registrations)
@@ -52,6 +54,7 @@ def model_from_repo(repo: base_model.Subject) -> SubjectModel:
                         subject_name=repo.subject_name,
                         registrations=repo.registrations,
                         state=repo.state,
+                        is_class_of=repo.is_class_of,
                         repo=repo)
 
 

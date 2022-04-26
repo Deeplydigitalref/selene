@@ -28,11 +28,27 @@ class WebAuthnSubjectRegistration(BaseModel, discriminator='auth:subject:webAuth
     encoded_challenge = UnicodeAttribute()
     credential = JSONAttribute(null=True)
 
+class ServiceSubjectRegistration(BaseModel, discriminator='auth:subject:serviceRegistration'):
+    reg_uuid = UnicodeAttribute()
+    subject_name = UnicodeAttribute()
+    sub = UnicodeAttribute(null=True)
+    state = UnicodeAttribute()
+
+
 class Subject(BaseModel, discriminator='auth:subject:subject'):
     sub = UnicodeAttribute()
+    is_class_of = UnicodeAttribute()
     subject_name = UnicodeAttribute()
     state = UnicodeAttribute()
     registrations = ListAttribute()
+
+class ActivityGroup(BaseModel, discriminator='auth:activity:activityGroup'):
+    display_name = UnicodeAttribute()
+    label = UnicodeAttribute()
+
+class Activity(BaseModel, discriminator='auth:activity:activity'):
+    display_name = UnicodeAttribute()
+    label = UnicodeAttribute()
 
 
 class Circuit(BaseModel, discriminator='auth:circuit'):

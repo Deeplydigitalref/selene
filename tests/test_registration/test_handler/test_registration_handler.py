@@ -89,19 +89,20 @@ def it_sets_the_webauthn_reg_to_complete(api_completion_request_event,
     assert reg.value.state == value.RegistrationStates.COMPLETED
 
 
-def it_creates_a_new_subject(api_completion_request_event,
-                             ssm_setup,
-                             dynamo_mock,
-                             set_up_key_management,
-                             set_up_env):
+def it_creates_a_new_person_subject(api_completion_request_event,
+                                    ssm_setup,
+                                    dynamo_mock,
+                                    set_up_key_management,
+                                    set_up_env):
     request = request_builder(set_up_event_and_reg(api_completion_request_event, registration_completion_usb()))
 
     result = request.event.request_function(request)
 
-    reg = registration.get(result.value.results.uuid, reify=(subject.Subject, subject.from_registration))
+    reg = registration.get(result.value.results.uuid, reify=(value.Subject, subject.from_registration))
 
     assert reg.is_right()
-    assert reg.value.subject.state == subject.States.CREATED
+    assert reg.value.subject.state == value.SubjectStates.CREATED
+    assert reg.value.subject.is_class_of == value.SubjectClass.PERSON
 
 
 #

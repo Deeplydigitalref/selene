@@ -7,36 +7,20 @@ from enum import Enum
 from common.repository.subject import subject as repo
 from common.util import observer, layer
 
-
-# Reg States, transitions, and state machine
-class States(Enum):
-    CREATED = 'CREATED'
-
-
-class Events(Enum):
-    REGISTERED = 1
-
+from . import value
 
 state_map = state_machine.state_transition_map([
-    (None, Events.REGISTERED, States.CREATED)])
+    (None, value.SubjectEvents.REGISTERED, value.SubjectStates.CREATED)])
 
 
-@define
-class Subject():
-    """
-    The Value object passed between the domain and the commands
-    """
-    uuid: str
-    subject_name: str
-    state: States
-    registrations: List = []
-    model: repo.SubjectModel = field(default=None)
-
+reg_type_to_subject_class = {
+    value.WebAuthnRegistration: value.SubjectClass.PERSON
+}
 
 #
 # Finialisers
 #
-def commit(model: repo.SubjectModel, subject: Subject):
+def commit(model: repo.SubjectModel, subject: value.Subject):
     result = repo.create(model)
     if result.repo.is_right():
         return monad.Right(subject)
@@ -49,16 +33,17 @@ def commit(model: repo.SubjectModel, subject: Subject):
 #
 
 @layer.finaliser(finaliser_fn=commit)
-def new_from_registration(registration) -> Subject:
-    sub = Subject(uuid=str(uuid.uuid4()),
-                  subject_name=registration.subject_name,
-                  state=state_transition(None, Events.REGISTERED).value,
-                  registrations=[registration])
+def new_from_registration(registration) -> value.Subject:
+    sub = value.Subject(uuid=str(uuid.uuid4()),
+                        subject_name=registration.subject_name,
+                        state=state_transition(None, value.SubjectEvents.REGISTERED).value,
+                        is_class_of=class_from_registration(registration),
+                        registrations=[registration])
     model = to_model(sub)
     return model, sub
 
 
-def get(uuid: str) -> Subject:
+def get(uuid: str) -> value.Subject:
     return find(uuid)
 
 
@@ -69,7 +54,7 @@ def from_registration(registration):
 #
 # State Management
 #
-def state_transition(from_state: str, with_transition: str) -> monad.EitherMonad[States]:
+def state_transition(from_state: str, with_transition: str) -> monad.EitherMonad[value.SubjectStates]:
     return state_machine.transition(state_map=state_map, from_state=from_state, with_transition=with_transition)
 
 
@@ -77,14 +62,19 @@ def state_transition(from_state: str, with_transition: str) -> monad.EitherMonad
 # Helpers
 #
 
-def to_model(subject: Subject) -> repo.SubjectModel:
+def class_from_registration(registration):
+    return reg_type_to_subject_class[type(registration)]
+
+
+def to_model(subject: value.Subject) -> repo.SubjectModel:
     return repo.SubjectModel(uuid=subject.uuid,
                              subject_name=subject.subject_name,
                              state=subject.state.value,
+                             is_class_of=subject.is_class_of.value,
                              registrations=list(map(record.at('uuid'), subject.registrations)))
 
 
-def find(uuid: str) -> Subject:
+def find(uuid: str) -> value.Subject:
     return to_domain(repo.find_by_uuid(uuid))
 
 
@@ -92,29 +82,22 @@ def to_domain(model: monad.EitherMonad[repo.SubjectModel]):
     if model.is_left():
         breakpoint()
 
-    return monad.Right(Subject(uuid=model.value.uuid,
-                               subject_name=model.value.subject_name,
-                               state=States[model.value.state],
-                               registrations=model.value.registrations,
-                               model=model))
+    return monad.Right(value.Subject(uuid=model.value.uuid,
+                                     subject_name=model.value.subject_name,
+                                     state=value.SubjectStates[model.value.state],
+                                     registrations=model.value.registrations,
+                                     is_class_of=value.SubjectClass[model.value.is_class_of],
+                                     model=model))
 
-    #
-    # State Management
-    #
-    def registration_transition(from_state: str, with_transition: str) -> monad.EitherMonad:
-        return state_machine.transition(state_map=reg_state_map, from_state=from_state, with_transition=with_transition)
 
-    def is_complete(reg):
-        return reg.circuit_state == value.RegistrationStates.COMPLETED.name
+#
+# State Management
+#
 
-    #
-    # Observer fn
-    #
+#
+# Observer fn
+#
 
-    def call_observers(observers, args):
-        [f(args) for f in observers]
-        pass
-
-    # state_observers = observer.Observers([
-    #     observer.Observer(event=value.RegistrationEvents.INITIATION, observer_fn=commit)
-    # ])
+def call_observers(observers, args):
+    [f(args) for f in observers]
+    pass

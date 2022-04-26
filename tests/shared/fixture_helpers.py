@@ -1,19 +1,13 @@
-from . import dynamo
+from . import subject_helpers
 
 from common.domain import constants
 from key_management.domain import crypto
 
 def set_up_event_and_reg(event, registration):
-    challenge, request, model = create_reg_in_created_state(registration)
+    challenge, request, model = subject_helpers.create_webauthn_reg_in_created_state(registration)
     mod_event = add_reg_cookie_to_event(event, model.uuid)
     mod_event['body'] = request
     return mod_event
-
-
-def create_reg_in_created_state(reg_complection):
-    challenge, request = reg_complection
-    model = dynamo.initiated_registration(challenge)
-    return challenge, request, model
 
 
 def add_reg_cookie_to_event(event, reg_uuid):

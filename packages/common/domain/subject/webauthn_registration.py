@@ -7,7 +7,7 @@ from common.util import env
 from common.domain.subject import value
 
 
-def registration_obligations(registration: value.Registration) -> value.Registration:
+def registration_obligations(registration: value.WebAuthnRegistration) -> value.WebAuthnRegistration:
     opts = webauthn_helpers.generate_options(rp_id=env.Env.relying_party_id(),
                                              rp_name=env.Env.relying_party_name(),
                                              subject_name=registration.subject_name)
@@ -22,7 +22,7 @@ def regenerate_opts(model: webauthn_registration.RegistrationModel) -> structs.P
                                      user_display_name=model.subject_name,
                                      challenge=model.registration_challenge)
 
-def validate_registration(challenge_response: Dict, registration: value.Registration):
+def validate_registration(challenge_response: Dict, registration: value.WebAuthnRegistration):
     return webauthn_helpers.reg_verify(credential=webauthn_helpers.reg_credential(challenge_response),
                                        challenge=registration.registration_options.challenge,
                                        expected_origin=env.Env.relying_party_name(),

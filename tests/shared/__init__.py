@@ -6,3 +6,4 @@ from .dynamo import *
 from .initialisers import *
 from .key_management_helpers import *
 from .request_fixtures import *
+from .subject_helpers import *

@@ -60,7 +60,7 @@ def it_handles_a_successful_registration_completion(api_completion_request_event
 # Helpers
 #
 def set_up_event_and_reg(event):
-    challenge, request, model = create_reg_in_created_state()
+    challenge, request, model = create_webauthn_reg_in_created_state()
     mod_event = add_reg_cookie_to_event(event, model.uuid)
     mod_event['body'] = request
     return mod_event

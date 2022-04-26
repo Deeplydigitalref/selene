@@ -15,15 +15,3 @@ def dynamo_mock():
     yield BaseModel
 
     mock_dynamodb().stop()
-
-
-def initiated_registration(challenge):
-    from common.util import encoding_helpers
-    from common.repository.subject import webauthn_registration
-    model = webauthn_registration.RegistrationModel(uuid=str(uuid.uuid4()),
-                                                    subject_name="subject1",
-                                                    state="CREATED",
-                                                    registration_challenge=encoding_helpers.base64url_to_bytes(
-                                                        challenge))
-    webauthn_registration.create(model)
-    return model

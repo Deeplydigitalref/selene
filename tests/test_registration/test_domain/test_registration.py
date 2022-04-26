@@ -8,7 +8,7 @@ from common.domain.subject import registration, value
 def it_creates_new_registration():
     reg = registration.new(subject_name='test1')
 
-    assert isinstance(reg, value.Registration)
+    assert isinstance(reg, value.WebAuthnRegistration)
     assert reg.subject_name == 'test1'
 
 def it_creates_the_new_reg_in_new_state(set_up_env_without_ssm,
@@ -49,14 +49,14 @@ def it_persists_the_created_reg(reg_with_options,
 # Helpers
 #
 @pytest.fixture
-def new_reg() -> value.Registration:
+def new_reg() -> value.WebAuthnRegistration:
     return registration.new(subject_name='test1')
 
 
 @pytest.fixture
-def reg_with_options() -> value.Registration:
+def reg_with_options() -> value.WebAuthnRegistration:
     return registration.registration_obligations(registration.new(subject_name='test1')).value
 
 
-def initiate_reg(reg) -> value.Registration:
+def initiate_reg(reg) -> value.WebAuthnRegistration:
     return registration.initiate(reg)

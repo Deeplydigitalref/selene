@@ -1,5 +1,5 @@
 from typing import Dict
-from pyfuncify import logger, monad
+from pyfuncify import monad
 from attrs import define, field
 
 from common.model import base_model
@@ -13,7 +13,7 @@ Registration:  Tracking the registration workflow for a subject.
 + SK: META#{subject-name}
 """
 
-repo = base_model.WebAuthnSubjectRegistration
+repo = base_model.ServiceSubjectRegistration
 
 
 @define
