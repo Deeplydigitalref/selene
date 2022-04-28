@@ -1,11 +1,9 @@
-from typing import Optional, List, Dict, Tuple, Callable, Any, Union
-from attrs import define, field
+from typing import Union
 import uuid
 from pyfuncify import state_machine, monad, record
-from enum import Enum
 
 from common.repository.subject import subject as repo
-from common.util import observer, layer
+from common.util import layer
 
 from . import value
 
@@ -14,7 +12,8 @@ state_map = state_machine.state_transition_map([
 
 
 reg_type_to_subject_class = {
-    value.WebAuthnRegistration: value.SubjectClass.PERSON
+    value.WebAuthnRegistration: value.SubjectClass.PERSON,
+    value.ServiceRegistration: value.SubjectClass.SYSTEM
 }
 
 #
@@ -33,7 +32,7 @@ def commit(model: repo.SubjectModel, subject: value.Subject):
 #
 
 @layer.finaliser(finaliser_fn=commit)
-def new_from_registration(registration) -> value.Subject:
+def new_from_registration(registration: Union[value.ServiceRegistration, value.WebAuthnRegistration]) -> value.Subject:
     sub = value.Subject(uuid=str(uuid.uuid4()),
                         subject_name=registration.subject_name,
                         state=state_transition(None, value.SubjectEvents.REGISTERED).value,

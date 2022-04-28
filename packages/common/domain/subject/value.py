@@ -34,10 +34,10 @@ class Subject:
 
 # Reg States, transitions, and state machine
 class RegistrationStates(Enum):
-    NEW = 1
-    CREATED = 2
-    FAILED = 3
-    COMPLETED = 4
+    NEW = "NEW"
+    CREATED = "CREATED"
+    FAILED = "FAILED"
+    COMPLETED = "COMPLETED"
 
 class RegistrationEvents(Enum):
     NEW = 1

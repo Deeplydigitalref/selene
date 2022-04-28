@@ -24,33 +24,24 @@ class RegistrationModel:
     uuid: str
     subject_name: str
     state: str
-    registration_challenge: bytes  # = field()
-    encoded_challenge: str = field()
     sub: str = field(default=None)
-
-    @encoded_challenge.default
-    def _to_base64(self):
-        return encoding_helpers.bytes_to_base64url(self.registration_challenge)
-
-    credential: str = field(default=None)
     repo: repo = field(default=None)
 
 
 def create(model: RegistrationModel) -> RegistrationModel:
     pk = format_registration_pk(model.uuid)
     sk = format_registration_sk(model.uuid)
-    repo = base_model.WebAuthnSubjectRegistration(hash_key=pk,
-                                                  range_key=sk,
-                                                  reg_uuid=model.uuid,
-                                                  subject_name=model.subject_name,
-                                                  sub=None,
-                                                  state=model.state,
-                                                  encoded_challenge=model.encoded_challenge)
+    repo = base_model.ServiceSubjectRegistration(hash_key=pk,
+                                                 range_key=sk,
+                                                 reg_uuid=model.uuid,
+                                                 subject_name=model.subject_name,
+                                                 sub=None,
+                                                 state=model.state)
     try_save = save(repo)
 
     if try_save.is_right():
-        model.repo = monad.Right(repo)
-        return model
+        model.repo = repo
+        return monad.Right(model)
     breakpoint()
 
 
@@ -61,7 +52,6 @@ def completed_state_change(model: RegistrationModel) -> RegistrationModel:
     :return RegistrationModel:
     """
     model.repo.state = model.state
-    model.repo.credential = model.credential
     model.repo.sub = model.sub
     try_save = save(model.repo)
     if try_save.is_right():
@@ -92,8 +82,8 @@ def model_from_repo(repo: base_model.WebAuthnSubjectRegistration) -> Registratio
 
 
 def format_registration_pk(uuid):
-    return "WAR#{}".format(uuid)
+    return "SVR#{}".format(uuid)
 
 
 def format_registration_sk(uuid):
-    return "WAR#META#{}".format(uuid)
+    return "SVR#META#{}".format(uuid)

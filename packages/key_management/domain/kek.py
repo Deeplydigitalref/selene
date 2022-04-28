@@ -6,6 +6,18 @@ from common.util import env, encoding_helpers
 
 kek_cache = GLOBAL_CACHE.MemoryCachedVar('kek_cache')
 
+"""
+The KEK is the key used to enc all the other keys (public and symmetric) so that they can be stored in the Key store.
+Dont use the KEK for anything but this purpose.
+
+
+TODO: This key will come from AWS key management on initialisation.
+
+For testing use the fixture "set_up_key_management" from tests.shared.key_management_helpers or call the setup directly using
+tests.shared.key_management_helpers.set_up_key_management_env
+
+"""
+
 def kek():
     return kek_cache.get()
 

@@ -32,6 +32,7 @@ class ServiceSubjectRegistration(BaseModel, discriminator='auth:subject:serviceR
     reg_uuid = UnicodeAttribute()
     subject_name = UnicodeAttribute()
     sub = UnicodeAttribute(null=True)
+    enc_secret = UnicodeAttribute()
     state = UnicodeAttribute()
 
 

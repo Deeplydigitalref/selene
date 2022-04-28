@@ -8,6 +8,8 @@ from common.util import serialisers
 
 from tests.shared import *
 
+def setup_module():
+    set_up_key_management
 
 #
 # Registration Initiation

@@ -1,19 +1,28 @@
 import pytest
 
+from tests.shared.key_management_helpers import *
+
 from webauthn.helpers import structs
 
 from common.domain.subject import registration, value
 
+def setup_module():
+    set_up_key_management_env()
+    pass
 
+#
+# WebAuthn Reg
 def it_creates_new_registration():
     reg = registration.new(subject_name='test1')
 
     assert isinstance(reg, value.WebAuthnRegistration)
     assert reg.subject_name == 'test1'
 
+
 def it_creates_the_new_reg_in_new_state(set_up_env_without_ssm,
                                         new_reg):
     assert new_reg.state == value.RegistrationStates.NEW
+
 
 def it_successfully_adds_webauthn_reg_options(set_up_env_without_ssm,
                                               new_reg):
@@ -32,6 +41,7 @@ def it_sets_the_reg_into_initiated_state(set_up_env_without_ssm,
     assert initiated_reg.is_right()
     assert initiated_reg.value.state == value.RegistrationStates.CREATED
 
+
 def it_persists_the_created_reg(reg_with_options,
                                 dynamo_mock,
                                 set_up_env):
@@ -43,7 +53,16 @@ def it_persists_the_created_reg(reg_with_options,
     assert reg.value.registration_options == reg_with_options.registration_options
 
 
+#
+# System Reg
+def it_registers_a_new_internal_service(dynamo_mock,
+                                        set_up_env):
 
+    reg = registration.new_service(new_service_reg())
+
+    breakpoint()
+    assert isinstance(reg, value.WebAuthnRegistration)
+    assert reg.subject_name == 'test1'
 
 #
 # Helpers
@@ -60,3 +79,9 @@ def reg_with_options() -> value.WebAuthnRegistration:
 
 def initiate_reg(reg) -> value.WebAuthnRegistration:
     return registration.initiate(reg)
+
+
+def new_service_reg():
+    return {
+        'serviceName': 'urn:service:service1'
+    }

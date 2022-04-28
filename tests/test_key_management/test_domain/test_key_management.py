@@ -52,3 +52,11 @@ def it_creates_a_symmetric_key(new_kek):
 
     assert found_key._signing_key == key_management.decrypt_sym_key(key)._signing_key
 
+
+def it_creates_a_symmetric_jwk(new_kek):
+    from jwcrypto.jwk import JWK
+    kid, key = key_management.rotate_symmetric_jwk()
+
+    found_key = key_management.get_key_by_use(key_management.KeyUse.jwtenc)
+
+    assert isinstance(found_key, JWK)

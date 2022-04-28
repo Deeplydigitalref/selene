@@ -13,6 +13,8 @@ def generate_challenge(length: int = 64, base64_encoded: bool=False) -> Union[st
         return encoding_helpers.bytes_to_base64url(secrets.token_bytes(length))
     return secrets.token_bytes(length)
 
+def generate_random_secret_url_safe():
+    return secrets.token_urlsafe()
 
 def generate_secure_cookie(tokens: Dict) -> bytes:
     return sym_enc.encrypt(serialise_token(tokens))

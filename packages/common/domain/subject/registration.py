@@ -7,11 +7,12 @@ from common.repository.subject import webauthn_registration as repo
 from common.domain import subject
 from common.util import observer, layer
 
-from common.domain.subject import subject, value, webauthn_registration
+from . import subject, value, webauthn_registration, service_registration
 
 reg_state_map = state_machine.state_transition_map([
     (None, value.RegistrationEvents.NEW, value.RegistrationStates.NEW),
     (value.RegistrationStates.NEW, value.RegistrationEvents.INITIATION, value.RegistrationStates.CREATED),
+    (value.RegistrationStates.NEW, value.RegistrationEvents.COMPLETION, value.RegistrationStates.COMPLETED),
     (value.RegistrationStates.CREATED, value.RegistrationEvents.COMPLETION, value.RegistrationStates.COMPLETED)])
 
 
@@ -34,6 +35,10 @@ def save_completed(model: repo.RegistrationModel, registration: value.WebAuthnRe
     return result
 
 
+def commit_service(model: repo.RegistrationModel, registration: value.ServiceRegistration):
+    breakpoint()
+
+
 #
 # API
 #
@@ -44,6 +49,14 @@ def new(subject_name: str) -> value.WebAuthnRegistration:
                                      state=registration_transition(None, value.RegistrationEvents.NEW).value)
     # call_observers(observer.observers_for_event(value.RegistrationEvents.NEW, state_observers), reg)
     return reg
+
+
+def new_service(service_value) -> value.ServiceRegistration:
+    reg = (service_registration.build_service_reg(service_value, registration_transition) >>
+           service_registration.create_service_reg >>
+           service_registration.onboard_subject >>
+           service_registration.complete_registration(registration_transition))
+    breakpoint()
 
 
 def registration_obligations(registration_value: value.WebAuthnRegistration) -> value.WebAuthnRegistration:
@@ -63,19 +76,18 @@ def get(uuid: str, reify: Callable = None) -> value.WebAuthnRegistration:
     return find(uuid, reify)
 
 
-# def get_with_subject(uuid: str) -> value.Registration:
-#     return find_with_subject(uuid)
-
 @layer.finaliser(finaliser_fn=save_completed)
-def complete_registration(challenge_response: Dict, registration_value: value.WebAuthnRegistration) -> value.WebAuthnRegistration:
+def complete_registration(challenge_response: Dict,
+                          registration_value: value.WebAuthnRegistration) -> value.WebAuthnRegistration:
     reg_validation = webauthn_registration.validate_registration(challenge_response, registration_value)
     if reg_validation.user_verified:
         return completer(registration_value, reg_validation, onboard_subject(registration_value))
     breakpoint()
 
 
-def completer(registration_value: value.WebAuthnRegistration, validation, subject: value.Subject) -> Tuple[
-    repo.RegistrationModel, value.WebAuthnRegistration]:
+def completer(registration_value: value.WebAuthnRegistration,
+              validation,
+              subject: value.Subject) -> Tuple[repo.RegistrationModel, value.WebAuthnRegistration]:
     registration_value.subject = subject.value
     registration_value.verified_registration = validation
     registration_value.state = registration_transition(registration_value.state,
@@ -86,6 +98,7 @@ def completer(registration_value: value.WebAuthnRegistration, validation, subjec
 
 def onboard_subject(registration_value: value.WebAuthnRegistration):
     return subject.new_from_registration(registration_value)
+
 
 
 #
@@ -149,14 +162,16 @@ def to_domain(model: monad.EitherMonad[repo.RegistrationModel]):
                                                   subject_name=model.value.subject_name,
                                                   sub=model.value.sub,
                                                   state=value.RegistrationStates[model.value.state],
-                                                  registration_options=webauthn_registration.regenerate_opts(model.value),
+                                                  registration_options=webauthn_registration.regenerate_opts(
+                                                      model.value),
                                                   model=model))
 
 
 #
 # State Management
 #
-def registration_transition(from_state: str, with_transition: str) -> monad.EitherMonad[value.RegistrationStates]:
+def registration_transition(from_state: value.RegistrationStates,
+                            with_transition: value.RegistrationEvents) -> monad.EitherMonad[value.RegistrationStates]:
     return state_machine.transition(state_map=reg_state_map, from_state=from_state, with_transition=with_transition)
 
 
