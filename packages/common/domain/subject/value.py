@@ -53,10 +53,13 @@ class RegistrationEvents(Enum):
 @define
 class WebAuthnRegistration:
     """
+    Defines a person's WebAuthn registered credential
     The Value object passed between the domain and the commands
     """
     uuid: str
     subject_name: str
+    realm: str
+    is_class_of: CredentialRegistrationClass
     subject: Subject = field(default=None)
     sub: str = field(default=None)
     state: RegistrationStates = field(default=None)
@@ -69,6 +72,7 @@ class WebAuthnRegistration:
 @define
 class ServiceRegistration:
     """
+    Defines a service's registered credential using for the Oauth Client Credentials grant
     The Value object passed between the domain and the commands
     """
     uuid: str

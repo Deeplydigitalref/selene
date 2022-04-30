@@ -16,7 +16,6 @@ def generate_options(rp_id, rp_name, subject_name) -> structs.PublicKeyCredentia
                     challenge=challenge)
 
 def generate(rp_id, rp_name, user_id, user_name, user_display_name, challenge) -> structs.PublicKeyCredentialCreationOptions:
-    # breakpoint()
     return webauthn_opts.generate_registration_options(rp_id=rp_id,
                                                       rp_name=rp_name,
                                                       user_id=user_id,

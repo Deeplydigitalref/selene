@@ -22,7 +22,8 @@ reg_state_map = state_machine.state_transition_map([
 #
 def commit(model: repo.RegistrationModel, registration: value.WebAuthnRegistration):
     result = repo.create(model)
-    if result.repo.is_right():
+    if result.is_right():
+        registration.model = result.value
         return monad.Right(registration)
     breakpoint()
     return result
@@ -47,6 +48,9 @@ def commit_service(model: repo.RegistrationModel, registration: value.ServiceReg
 def new(subject_name: str) -> value.WebAuthnRegistration:
     reg = value.WebAuthnRegistration(uuid=str(uuid.uuid4()),
                                      subject_name=subject_name,
+                                     realm=security_policy.Realm.CUSTOMER,  #TODO: dynamic method for realm determination
+                                                                            #CUSTOMER should always be the default
+                                     is_class_of=value.CredentialRegistrationClass.WebAuthnRegistration,
                                      state=registration_transition(None, value.RegistrationEvents.NEW).value)
     # call_observers(observer.observers_for_event(value.RegistrationEvents.NEW, state_observers), reg)
     return reg
@@ -109,6 +113,8 @@ def build_model_from_registration(registration_value: value.WebAuthnRegistration
     return repo.RegistrationModel(uuid=registration_value.uuid,
                                   subject_name=registration_value.subject_name,
                                   state=registration_value.state.name,
+                                  is_class_of=registration_value.is_class_of.value,
+                                  realm=registration_value.realm.value,
                                   registration_challenge=registration_value.registration_options.challenge)
 
 

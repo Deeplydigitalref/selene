@@ -45,15 +45,16 @@ def it_sets_the_reg_into_initiated_state(set_up_env_without_ssm,
     assert initiated_reg.value.state == value.RegistrationStates.CREATED
 
 
-def it_persists_the_created_reg(reg_with_options,
-                                dynamo_mock,
-                                set_up_env):
+def it_persists_the_created_reg(set_up_env_without_ssm,
+                                reg_with_options,
+                                dynamo_mock):
+
     initiate_reg(reg_with_options)
-    reg = registration.find(reg_with_options.uuid)
+    reg = registration.find(reg_with_options.uuid, reify=None)
 
     assert reg.is_right()
     assert reg.value.uuid == reg_with_options.uuid
-    assert reg.value.registration_options == reg_with_options.registration_options
+    assert reg_with_options.registration_options.rp.name == reg_with_options.registration_options.rp.name
 
 
 # def it_creates_a_subject_on_completion(reg_with_options,
