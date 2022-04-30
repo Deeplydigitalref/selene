@@ -19,6 +19,10 @@ class SubjectClass(Enum):
     PERSON = 'PERSON'
     SYSTEM = 'SYSTEM'
 
+class CredentialRegistrationClass(Enum):
+    WebAuthnRegistration = 'WEBAUTHN'
+    ServiceRegistration = 'OAUTH-CLIENT_CREDENTIAL'
+
 @define
 class Subject:
     """
@@ -69,6 +73,9 @@ class ServiceRegistration:
     """
     uuid: str
     subject_name: str
+    client_secret: str
+    realm: str
+    is_class_of: CredentialRegistrationClass
     subject: Subject = field(default=None)
     sub: str = field(default=None)
     state: RegistrationStates = field(default=None)

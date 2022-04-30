@@ -1,5 +1,5 @@
 from typing import Dict
-from pyfuncify import logger, monad
+from pyfuncify import monad
 from attrs import define, field
 
 from common.model import base_model
@@ -10,7 +10,7 @@ Data Model:
 
 Registration:  Tracking the registration workflow for a subject.
 + PK: REG#{id}
-+ SK: META#{subject-name}
++ SK: REG#META#{id}
 """
 
 repo = base_model.CredentialRegistration
@@ -24,15 +24,12 @@ class RegistrationModel:
     uuid: str
     subject_name: str
     state: str
-    registration_challenge: bytes  # = field()
-    encoded_challenge: str = field()
+    realm: str
+    is_class_of: str
+    client_secret: str = field(default=None)
+    registration_challenge: bytes  = field(default=None)
+    encoded_challenge: str = field(default=None)
     sub: str = field(default=None)
-
-    @encoded_challenge.default
-    def _to_base64(self):
-        return encoding_helpers.bytes_to_base64url(self.registration_challenge)
-
-    credential: str = field(default=None)
     repo: repo = field(default=None)
 
 
@@ -42,16 +39,18 @@ def create(model: RegistrationModel) -> RegistrationModel:
     repo = base_model.CredentialRegistration(hash_key=pk,
                                              range_key=sk,
                                              reg_uuid=model.uuid,
+                                             client_secret=model.client_secret,
+                                             realm=model.realm,
                                              subject_name=model.subject_name,
-                                             sub=None,
                                              is_class_of=model.is_class_of,
-                                             state=model.state,
-                                             encoded_challenge=model.encoded_challenge)
+                                             sub=None,
+                                             encoded_challenge=model.encoded_challenge,
+                                             state=model.state)
     try_save = save(repo)
 
     if try_save.is_right():
-        model.repo = monad.Right(repo)
-        return model
+        model.repo = repo
+        return monad.Right(model)
     breakpoint()
 
 
@@ -62,7 +61,6 @@ def completed_state_change(model: RegistrationModel) -> RegistrationModel:
     :return RegistrationModel:
     """
     model.repo.state = model.state
-    model.repo.credential = model.credential
     model.repo.sub = model.sub
     try_save = save(model.repo)
     if try_save.is_right():
@@ -78,7 +76,6 @@ def save(model) -> monad.EitherMonad[Dict]:
 
 @monad.monadic_try()
 def find_by_uuid(uuid: str) -> monad.EitherMonad[RegistrationModel]:
-    breakpoint()
     return model_from_repo(base_model.CredentialRegistration.get(hash_key=format_registration_pk(uuid),
                                                                  range_key=format_registration_sk(uuid)))
 
@@ -88,6 +85,8 @@ def model_from_repo(repo: base_model.CredentialRegistration) -> RegistrationMode
                              subject_name=repo.subject_name,
                              sub=repo.sub,
                              state=repo.state,
+                             client_secret=repo.client_secret,
+                             realm=repo.realm,
                              is_class_of=repo.is_class_of,
                              registration_challenge=encoding_helpers.base64url_to_bytes(repo.encoded_challenge),
                              encoded_challenge=repo.encoded_challenge,

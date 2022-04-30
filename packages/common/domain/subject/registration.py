@@ -1,10 +1,11 @@
-from typing import Dict, Tuple, Callable, Any
+from typing import Dict, Tuple, Callable, Any, Union
 import uuid
 from pyfuncify import state_machine, monad
 import sys
 
-from common.repository.subject import webauthn_registration as repo
+from common.repository.subject import credential_registration as repo
 from common.domain import subject
+from common.domain.policy import security_policy
 from common.util import observer, layer
 
 from . import subject, value, webauthn_registration, service_registration
@@ -56,7 +57,7 @@ def new_service(service_value) -> value.ServiceRegistration:
            service_registration.create_service_reg >>
            service_registration.onboard_subject >>
            service_registration.complete_registration(registration_transition))
-    breakpoint()
+    return reg.value
 
 
 def registration_obligations(registration_value: value.WebAuthnRegistration) -> value.WebAuthnRegistration:
@@ -72,7 +73,7 @@ def initiate(registration_value: value.WebAuthnRegistration):
     return model, registration_value
 
 
-def get(uuid: str, reify: Callable = None) -> value.WebAuthnRegistration:
+def get(uuid: str, reify: Callable = None) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
     return find(uuid, reify)
 
 
@@ -100,7 +101,6 @@ def onboard_subject(registration_value: value.WebAuthnRegistration):
     return subject.new_from_registration(registration_value)
 
 
-
 #
 # Helpers
 #
@@ -120,10 +120,11 @@ def complete_valid_registration_model(registration_value: value.WebAuthnRegistra
     return model
 
 
-def find(uuid: str, reify: Tuple[Any, Callable]) -> monad.EitherMonad[value.WebAuthnRegistration]:
+def find(uuid: str, reify: Tuple[Any, Callable]) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
     reg = to_domain(repo.find_by_uuid(uuid))
     if reify:
-        return reify_token_caller(reify[0])(reg, reify[1])
+        cls, reify_fn = reify
+        return reify_token_caller(cls)(reg, reify_fn)
     return reg
 
 
@@ -154,17 +155,42 @@ def find_with_sub(uuid: str) -> value.WebAuthnRegistration:
     return to_domain(repo.find_by_uuid(uuid))
 
 
-def to_domain(model: monad.EitherMonad[repo.RegistrationModel]):
+def to_domain(model: monad.EitherMonad[repo.RegistrationModel]) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
+    """
+    Determines the class of the registration; a WebAuth or Service registration and creates a domain object of that class.
+    :param model:
+    :return:
+    """
     if model.is_left():
         breakpoint()
 
-    return monad.Right(value.WebAuthnRegistration(uuid=model.value.uuid,
-                                                  subject_name=model.value.subject_name,
-                                                  sub=model.value.sub,
-                                                  state=value.RegistrationStates[model.value.state],
-                                                  registration_options=webauthn_registration.regenerate_opts(
-                                                      model.value),
-                                                  model=model))
+    is_class_of = value.CredentialRegistrationClass(model.value.is_class_of)
+
+    if is_class_of == value.CredentialRegistrationClass.ServiceRegistration:
+        return monad.Right(to_service_reg(model.value))
+    return monad.Right(to_webauthn_reg(model.value))
+
+
+def to_service_reg(model):
+    return value.ServiceRegistration(uuid=model.uuid,
+                                     subject_name=model.subject_name,
+                                     sub=model.sub,
+                                     state=value.RegistrationStates(model.state),
+                                     realm=security_policy.Realm(model.realm),
+                                     is_class_of=value.CredentialRegistrationClass.ServiceRegistration,
+                                     client_secret=model.client_secret,
+                                     model=model)
+
+
+def to_webauthn_reg(model):
+    return value.WebAuthnRegistration(uuid=model.uuid,
+                                      subject_name=model.subject_name,
+                                      sub=model.sub,
+                                      state=value.RegistrationStates(model.state),
+                                      realm=security_policy.Realm(model.realm),
+                                      is_class_of=value.CredentialRegistrationClass.WebAuthnRegistration,
+                                      registration_options=webauthn_registration.regenerate_opts(model),
+                                      model=model)
 
 
 #

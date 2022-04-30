@@ -13,7 +13,7 @@ Registration:  Tracking the registration workflow for a subject.
 + SK: META#{subject-name}
 """
 
-repo = base_model.ServiceSubjectRegistration
+repo = base_model.CredentialRegistration
 
 
 @define
@@ -24,25 +24,11 @@ class RegistrationModel:
     uuid: str
     subject_name: str
     state: str
+    client_secret: str
+    realm: str
+    is_class_of: str
     sub: str = field(default=None)
     repo: repo = field(default=None)
-
-
-def create(model: RegistrationModel) -> RegistrationModel:
-    pk = format_registration_pk(model.uuid)
-    sk = format_registration_sk(model.uuid)
-    repo = base_model.ServiceSubjectRegistration(hash_key=pk,
-                                                 range_key=sk,
-                                                 reg_uuid=model.uuid,
-                                                 subject_name=model.subject_name,
-                                                 sub=None,
-                                                 state=model.state)
-    try_save = save(repo)
-
-    if try_save.is_right():
-        model.repo = repo
-        return monad.Right(model)
-    breakpoint()
 
 
 def completed_state_change(model: RegistrationModel) -> RegistrationModel:
@@ -67,23 +53,26 @@ def save(model) -> monad.EitherMonad[Dict]:
 
 @monad.monadic_try()
 def find_by_uuid(uuid: str) -> monad.EitherMonad[RegistrationModel]:
-    return model_from_repo(base_model.WebAuthnSubjectRegistration.get(hash_key=format_registration_pk(uuid),
-                                                                      range_key=format_registration_sk(uuid)))
+    return model_from_repo(base_model.CredentialRegistration.get(hash_key=format_registration_pk(uuid),
+                                                                 range_key=format_registration_sk(uuid)))
 
 
-def model_from_repo(repo: base_model.WebAuthnSubjectRegistration) -> RegistrationModel:
+def model_from_repo(repo: base_model.CredentialRegistration) -> RegistrationModel:
     return RegistrationModel(uuid=repo.reg_uuid,
                              subject_name=repo.subject_name,
                              sub=repo.sub,
                              state=repo.state,
+                             client_secret=repo.client_secret,
+                             realm=repo.realm,
+                             is_class_of=repo.is_class_of,
                              registration_challenge=encoding_helpers.base64url_to_bytes(repo.encoded_challenge),
                              encoded_challenge=repo.encoded_challenge,
                              repo=repo)
 
 
 def format_registration_pk(uuid):
-    return "SVR#{}".format(uuid)
+    return "REG#{}".format(uuid)
 
 
 def format_registration_sk(uuid):
-    return "SVR#META#{}".format(uuid)
+    return "REG#META#{}".format(uuid)

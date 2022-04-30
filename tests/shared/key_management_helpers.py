@@ -36,3 +36,8 @@ def rotate_enc_key():
     key_management.rotate_symmetric_key()
     pass
 
+
+@pytest.fixture
+def rotate_enc_jwk():
+    key_management.rotate_symmetric_jwk()
+    pass

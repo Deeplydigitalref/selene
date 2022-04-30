@@ -20,20 +20,16 @@ class BaseModel(Model):
     SK = UnicodeAttribute(range_key=True)
     kind = DiscriminatorAttribute()
 
-class WebAuthnSubjectRegistration(BaseModel, discriminator='auth:subject:webAuthnRegistration'):
+class CredentialRegistration(BaseModel, discriminator='auth:subject:credentialRegistration'):
     reg_uuid = UnicodeAttribute()
     subject_name = UnicodeAttribute()
-    sub = UnicodeAttribute(null=True)
     state = UnicodeAttribute()
-    encoded_challenge = UnicodeAttribute()
+    realm = UnicodeAttribute()
+    is_class_of = UnicodeAttribute()
+    sub = UnicodeAttribute(null=True)
+    encoded_challenge = UnicodeAttribute(null=True)
+    client_secret = UnicodeAttribute(null=True)
     credential = JSONAttribute(null=True)
-
-class ServiceSubjectRegistration(BaseModel, discriminator='auth:subject:serviceRegistration'):
-    reg_uuid = UnicodeAttribute()
-    subject_name = UnicodeAttribute()
-    sub = UnicodeAttribute(null=True)
-    enc_secret = UnicodeAttribute()
-    state = UnicodeAttribute()
 
 
 class Subject(BaseModel, discriminator='auth:subject:subject'):

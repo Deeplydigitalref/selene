@@ -4,11 +4,14 @@ from tests.shared.key_management_helpers import *
 
 from webauthn.helpers import structs
 
-from common.domain.subject import registration, value
+from common.domain.subject import registration, value, subject
+from common.domain.policy import security_policy
+
 
 def setup_module():
     set_up_key_management_env()
     pass
+
 
 #
 # WebAuthn Reg
@@ -53,16 +56,49 @@ def it_persists_the_created_reg(reg_with_options,
     assert reg.value.registration_options == reg_with_options.registration_options
 
 
+# def it_creates_a_subject_on_completion(reg_with_options,
+#                                        dynamo_mock,
+#                                        set_up_env):
+#     initiate_reg(reg_with_options)
+#
+#     reg = registration.find(reg_with_options.uuid)
+#
+#     reg = registration.get(result.value.results.uuid, reify=(value.Subject, subject.from_registration))
+#
+#     assert reg.is_right()
+#     assert reg.value.subject.state == value.SubjectStates.CREATED
+#     assert reg.value.subject.is_class_of == value.SubjectClass.PERSON
+
+
 #
 # System Reg
 def it_registers_a_new_internal_service(dynamo_mock,
                                         set_up_env):
-
     reg = registration.new_service(new_service_reg())
 
-    breakpoint()
-    assert isinstance(reg, value.WebAuthnRegistration)
-    assert reg.subject_name == 'test1'
+    assert isinstance(reg, value.ServiceRegistration)
+    assert reg.subject_name == 'urn:service:service1'
+    assert reg.state == registration.value.RegistrationStates.COMPLETED
+
+
+def it_registers_service_with_realm(dynamo_mock,
+                                    set_up_env):
+    reg = registration.new_service(new_service_reg())
+
+    assert reg.realm == security_policy.Realm.INTERNAL
+
+
+def it_onboards_the_subject(dynamo_mock,
+                            set_up_env):
+    result = registration.new_service(new_service_reg())
+
+    reg = registration.get(result.uuid, reify=(value.Subject, subject.from_registration)).value
+
+    assert isinstance(reg, value.ServiceRegistration)
+    assert reg.subject.state == value.SubjectStates.CREATED
+    assert reg.subject.is_class_of == value.SubjectClass.SYSTEM
+
+
 
 #
 # Helpers
@@ -83,5 +119,6 @@ def initiate_reg(reg) -> value.WebAuthnRegistration:
 
 def new_service_reg():
     return {
-        'serviceName': 'urn:service:service1'
+        'serviceName': 'urn:service:service1',
+        'realm': 'https://example.com/ontologies/sec/realm/internal'
     }
