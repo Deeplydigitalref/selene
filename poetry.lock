@@ -239,7 +239,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "moto"
-version = "3.1.6"
+version = "3.1.7"
 description = "A library that allows your python tests to easily mock out the boto library"
 category = "dev"
 optional = false
@@ -402,7 +402,7 @@ email = ["email-validator (>=1.0.3)"]
 
 [[package]]
 name = "pyfuncify"
-version = "0.5.13"
+version = "0.5.14"
 description = ""
 category = "main"
 optional = false
@@ -426,7 +426,7 @@ simple-memory-cache = "^1.0.0"
 type = "git"
 url = "https://github.com/wildfauve/pyfuncify.git"
 reference = "main"
-resolved_reference = "9a5440bb1cfb802f5df5d68579dd067396511f5f"
+resolved_reference = "7df13ae30eb76fed512a257ab1d01a909985fcef"
 
 [[package]]
 name = "pygments"
@@ -973,8 +973,8 @@ more-itertools = [
     {file = "more_itertools-8.12.0-py3-none-any.whl", hash = "sha256:43e6dd9942dffd72661a2c4ef383ad7da1e6a3e968a927ad7a6083ab410a688b"},
 ]
 moto = [
-    {file = "moto-3.1.6-py3-none-any.whl", hash = "sha256:2ff083c9a91dafed62d3ae19f393d28987db93fae6fe242a145cf1b6298d1e84"},
-    {file = "moto-3.1.6.tar.gz", hash = "sha256:51552b2dfa99a539bca8737a66601b7404be01d2c53a41556a2197b18c1cf172"},
+    {file = "moto-3.1.7-py3-none-any.whl", hash = "sha256:4ab6fb8dd150343e115d75e3dbdb5a8f850fc7236790819d7cef438c11ee6e89"},
+    {file = "moto-3.1.7.tar.gz", hash = "sha256:20607a0fd0cf6530e05ffb623ca84d3f45d50bddbcec2a33705a0cf471e71289"},
 ]
 mypy = [
     {file = "mypy-0.931-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:3c5b42d0815e15518b1f0990cff7a705805961613e701db60387e6fb663fe78a"},

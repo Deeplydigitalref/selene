@@ -31,7 +31,8 @@ class Subject:
     subject_name: str
     is_class_of: str
     state: SubjectStates
-    registrations: List = []
+    registration_ids: List = []  # the uuids of the CredentialRegistrations
+    registrations: List = []  # the reified CredentialRegistrations
     model: subject.SubjectModel = field(default=None)
 
 
@@ -48,39 +49,34 @@ class RegistrationEvents(Enum):
     COMPLETION = 3
     FAILURE = 4
 
+@define
+class CredentialRegistration:
+    uuid: str
+    subject_name: str
+    realm: str
+    is_class_of: CredentialRegistrationClass
+    subject: Subject = field(default=None)
+    sub: str = field(default=None)
+    state: RegistrationStates = field(default=None)
+    model: credential_registration.RegistrationModel = field(default=None)
+
 
 @define
-class WebAuthnRegistration:
+class WebAuthnRegistration(CredentialRegistration):
     """
     Defines a person's WebAuthn registered credential
     The Value object passed between the domain and the commands
     """
-    uuid: str
-    subject_name: str
-    realm: str
-    is_class_of: CredentialRegistrationClass
-    subject: Subject = field(default=None)
-    sub: str = field(default=None)
-    state: RegistrationStates = field(default=None)
     registration_options: structs.PublicKeyCredentialCreationOptions = field(default=None)
     registration_session: str = field(default=None)
     verified_registration: webauthn_verify.VerifiedRegistration = field(default=None)
-    model: credential_registration.RegistrationModel = field(default=None)
 
 
 @define
-class ServiceRegistration:
+class ServiceRegistration(CredentialRegistration):
     """
     Defines a service's registered credential using for the Oauth Client Credentials grant
     The Value object passed between the domain and the commands
     """
-    uuid: str
-    subject_name: str
-    client_secret: str
-    realm: str
-    is_class_of: CredentialRegistrationClass
-    subject: Subject = field(default=None)
-    sub: str = field(default=None)
-    state: RegistrationStates = field(default=None)
-    model: credential_registration.RegistrationModel = field(default=None)
+    client_secret: str = field(default=None)
 

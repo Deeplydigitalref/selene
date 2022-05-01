@@ -77,9 +77,14 @@ def initiate(registration_value: value.WebAuthnRegistration):
     return model, registration_value
 
 
-def get(uuid: str, reify: Callable = None) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
+def get(uuid: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
     return find(uuid, reify)
 
+def registrations_for_subject(subject: value.Subject):
+    models = repo.get_registrations_by_uuids(subject.registration_ids)
+    if models.is_right():
+        return [to_domain(monad.Right(model)) for model in models.value]
+    breakpoint()
 
 @layer.finaliser(finaliser_fn=save_completed)
 def complete_registration(challenge_response: Dict,

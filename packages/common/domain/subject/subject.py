@@ -1,20 +1,23 @@
-from typing import Union
+from typing import Union, Tuple, Callable
+import sys
 import uuid
-from pyfuncify import state_machine, monad, record
+from pymonad.maybe import Just, Nothing
+from pyfuncify import state_machine, monad, record, fn
 
 from common.repository.subject import subject as repo
 from common.util import layer
+from key_management.domain import sym_enc
 
 from . import value
 
 state_map = state_machine.state_transition_map([
     (None, value.SubjectEvents.REGISTERED, value.SubjectStates.CREATED)])
 
-
 reg_type_to_subject_class = {
     value.WebAuthnRegistration: value.SubjectClass.PERSON,
     value.ServiceRegistration: value.SubjectClass.SYSTEM
 }
+
 
 #
 # Finialisers
@@ -37,18 +40,23 @@ def new_from_registration(registration: Union[value.ServiceRegistration, value.W
                         subject_name=registration.subject_name,
                         state=state_transition(None, value.SubjectEvents.REGISTERED).value,
                         is_class_of=class_from_registration(registration),
-                        registrations=[registration])
+                        registration_ids=[registration])
     model = to_model(sub)
     return model, sub
 
 
-def get(uuid: str) -> value.Subject:
-    return find(uuid)
+def get(uuid: str, reify: Tuple[value.CredentialRegistration, Callable] = None) -> value.Subject:
+    return find(uuid, reify)
 
 
 def from_registration(registration):
     return get(registration.sub)
 
+def is_valid_secret(subject: value.Subject, secret: str) -> Just:
+    reg = fn.find(reg_is_class_of_service_registration, subject.registrations)
+    if is_system(subject):
+        return sym_enc.jwe_decrypt(reg.client_secret) == secret
+    return Nothing
 
 #
 # State Management
@@ -61,6 +69,38 @@ def state_transition(from_state: str, with_transition: str) -> monad.EitherMonad
 # Helpers
 #
 
+def find(uuid: str,
+         reify: Tuple[value.CredentialRegistration, Callable]) -> monad.EitherMonad[
+    Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
+
+    reg = to_domain(repo.find_by_uuid(uuid))
+    if reify:
+        cls, reify_fn = reify
+        return reify_token_caller(cls)(reg, reify_fn)
+    return reg
+
+
+def credentialregistration_reifier(subject: monad.EitherMonad, reify_fn: callable) -> monad.EitherMonad[value.WebAuthnRegistration]:
+    """
+    Takes a monadic subject and adds the credentials domain.
+    If credentials domain returns a Left, the entire subject query returns a left
+    :param reg:
+    :param reify_fn:
+    :return monad.EitherMonad[value.Registration]:
+    """
+    if subject.is_left():
+        return subject
+    regs = reify_fn(subject.value)
+    if all(map(lambda reg: reg.is_right(), regs)):
+        subject.value.registrations = [reg.value for reg in regs]
+        return subject
+    return monad.Left(subject.value)
+
+
+def reify_token_caller(cls):
+    return getattr(sys.modules[__name__], "{}_reifier".format(cls.__name__.lower()))
+
+
 def class_from_registration(registration):
     return reg_type_to_subject_class[type(registration)]
 
@@ -70,11 +110,7 @@ def to_model(subject: value.Subject) -> repo.SubjectModel:
                              subject_name=subject.subject_name,
                              state=subject.state.value,
                              is_class_of=subject.is_class_of.value,
-                             registrations=list(map(record.at('uuid'), subject.registrations)))
-
-
-def find(uuid: str) -> value.Subject:
-    return to_domain(repo.find_by_uuid(uuid))
+                             registrations=list(map(record.at('uuid'), subject.registration_ids)))
 
 
 def to_domain(model: monad.EitherMonad[repo.SubjectModel]):
@@ -84,11 +120,15 @@ def to_domain(model: monad.EitherMonad[repo.SubjectModel]):
     return monad.Right(value.Subject(uuid=model.value.uuid,
                                      subject_name=model.value.subject_name,
                                      state=value.SubjectStates[model.value.state],
-                                     registrations=model.value.registrations,
+                                     registration_ids=model.value.registrations,
                                      is_class_of=value.SubjectClass[model.value.is_class_of],
                                      model=model))
 
+def is_system(subject: value.Subject) -> bool:
+    return subject.is_class_of == value.SubjectClass.SYSTEM
 
+def reg_is_class_of_service_registration(reg: value.CredentialRegistration) -> bool:
+    return reg.is_class_of == value.CredentialRegistrationClass.ServiceRegistration
 #
 # State Management
 #

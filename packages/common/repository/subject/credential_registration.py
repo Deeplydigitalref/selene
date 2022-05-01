@@ -104,7 +104,14 @@ def find_by_uuid(uuid: str) -> monad.EitherMonad[RegistrationModel]:
     return model_from_repo(base_model.CredentialRegistration.get(hash_key=format_registration_pk(uuid),
                                                                  range_key=format_registration_sk(uuid)))
 
+@monad.monadic_try()
+def get_registrations_by_uuids(uuids):
+    keys = [(format_registration_pk(uuid), format_registration_sk(uuid)) for uuid in uuids]
+    return [model_from_repo(reg) for reg in base_model.CredentialRegistration.batch_get(keys)]
 
+#
+# Helpers
+#
 def model_from_repo(repo: base_model.CredentialRegistration) -> RegistrationModel:
     return RegistrationModel(uuid=repo.reg_uuid,
                              subject_name=repo.subject_name,
