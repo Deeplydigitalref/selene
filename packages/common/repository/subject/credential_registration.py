@@ -28,8 +28,17 @@ class RegistrationModel:
     is_class_of: str
     client_secret: str = field(default=None)
     registration_challenge: bytes  = field(default=None)
-    encoded_challenge: str = field(default=None)
+
+    encoded_challenge: str = field()
+
+    @encoded_challenge.default
+    def _to_base64(self):
+        if not self.registration_challenge:
+            return None
+        return encoding_helpers.bytes_to_base64url(self.registration_challenge)
+
     sub: str = field(default=None)
+    credential: str = field(default=None)
     repo: repo = field(default=None)
 
 
@@ -61,6 +70,22 @@ def completed_state_change(model: RegistrationModel) -> RegistrationModel:
     :return RegistrationModel:
     """
     model.repo.state = model.state
+    model.repo.sub = model.sub
+    try_save = save(model.repo)
+    if try_save.is_right():
+        model.repo = monad.Right(model.repo)
+        return model
+    breakpoint()
+
+
+def completed_webauthn_state_change(model: RegistrationModel) -> RegistrationModel:
+    """
+    Adds the credential and sets the completion state
+    :param model:
+    :return RegistrationModel:
+    """
+    model.repo.state = model.state
+    model.repo.credential = model.credential
     model.repo.sub = model.sub
     try_save = save(model.repo)
     if try_save.is_right():

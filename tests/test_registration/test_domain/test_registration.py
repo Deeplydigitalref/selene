@@ -1,6 +1,9 @@
 import pytest
+import json
 
 from tests.shared.key_management_helpers import *
+from tests.shared.subject_helpers import *
+from tests.shared.request_fixtures import *
 
 from webauthn.helpers import structs
 
@@ -48,7 +51,6 @@ def it_sets_the_reg_into_initiated_state(set_up_env_without_ssm,
 def it_persists_the_created_reg(set_up_env_without_ssm,
                                 reg_with_options,
                                 dynamo_mock):
-
     initiate_reg(reg_with_options)
     reg = registration.find(reg_with_options.uuid, reify=None)
 
@@ -57,18 +59,37 @@ def it_persists_the_created_reg(set_up_env_without_ssm,
     assert reg_with_options.registration_options.rp.name == reg_with_options.registration_options.rp.name
 
 
-# def it_creates_a_subject_on_completion(reg_with_options,
-#                                        dynamo_mock,
-#                                        set_up_env):
-#     initiate_reg(reg_with_options)
-#
-#     reg = registration.find(reg_with_options.uuid)
-#
-#     reg = registration.get(result.value.results.uuid, reify=(value.Subject, subject.from_registration))
-#
-#     assert reg.is_right()
-#     assert reg.value.subject.state == value.SubjectStates.CREATED
-#     assert reg.value.subject.is_class_of == value.SubjectClass.PERSON
+def it_completes_the_registration_when_completion_valid(set_up_env_without_ssm,
+                                                        dynamo_mock):
+    challenge, request, model = create_webauthn_reg_in_created_state(registration_completion_usb())
+
+    reg = registration.get(model.uuid).value
+    result = registration.complete_registration(json.loads(request), reg)
+
+    assert result.is_right()
+    assert result.value.state == value.RegistrationStates.COMPLETED
+
+def it_defaults_to_the_customer_realm(set_up_env_without_ssm,
+                                                        dynamo_mock):
+    challenge, request, model = create_webauthn_reg_in_created_state(registration_completion_usb())
+
+    reg = registration.get(model.uuid).value
+    completed_reg = registration.complete_registration(json.loads(request), reg).value
+
+    assert completed_reg.realm == security_policy.Realm.CUSTOMER
+
+
+def it_creates_a_subject_on_completion(set_up_env_without_ssm,
+                                       dynamo_mock):
+    challenge, request, model = create_webauthn_reg_in_created_state(registration_completion_usb())
+
+    reg = registration.get(model.uuid).value
+
+    completed_reg = registration.complete_registration(json.loads(request), reg).value
+
+    assert completed_reg.subject.subject_name == "subject1"
+    assert completed_reg.subject.is_class_of == value.SubjectClass.PERSON
+    assert completed_reg.subject.state == value.SubjectStates.CREATED
 
 
 #
@@ -98,7 +119,6 @@ def it_onboards_the_subject(dynamo_mock,
     assert isinstance(reg, value.ServiceRegistration)
     assert reg.subject.state == value.SubjectStates.CREATED
     assert reg.subject.is_class_of == value.SubjectClass.SYSTEM
-
 
 
 #

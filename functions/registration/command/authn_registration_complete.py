@@ -7,17 +7,19 @@ from key_management.domain import crypto
 
 
 def invoke(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.WebAuthnRegistration]:
-    result = get_registration(event) >> complete_registration(event) >> clear_session(event)
+    result = get_registration(event) >> complete_webauthn_registration(event) >> clear_session(event)
     return result
 
 def get_registration(event: app.ApiGatewayRequestEvent) -> monad.EitherMonad[value.WebAuthnRegistration]:
+    breakpoint()
     reg = registration.get(retrieve_session_token(event.web_session))
     reg.value.registration_session = event.web_session
     return reg
 
 @curry(2)
-def complete_registration(event: app.ApiGatewayRequestEvent, registration_value: value.WebAuthnRegistration) -> monad.EitherMonad[
+def complete_webauthn_registration(event: app.ApiGatewayRequestEvent, registration_value: value.WebAuthnRegistration) -> monad.EitherMonad[
     value.WebAuthnRegistration]:
+    breakpoint()
     result = registration.complete_registration(event.body, registration_value)
     if result.is_right():
         return result

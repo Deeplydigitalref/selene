@@ -30,7 +30,7 @@ def commit(model: repo.RegistrationModel, registration: value.WebAuthnRegistrati
 
 
 def save_completed(model: repo.RegistrationModel, registration: value.WebAuthnRegistration):
-    result = repo.completed_state_change(model)
+    result = repo.completed_webauthn_state_change(model)
     if result.repo.is_right():
         return monad.Right(registration)
     breakpoint()
@@ -119,7 +119,7 @@ def build_model_from_registration(registration_value: value.WebAuthnRegistration
 
 
 def complete_valid_registration_model(registration_value: value.WebAuthnRegistration) -> repo.RegistrationModel:
-    model = registration_value.model.value
+    model = registration_value.model
     model.state = registration_value.state.name
     model.credential = registration_value.verified_registration.json()
     model.sub = registration_value.subject.uuid

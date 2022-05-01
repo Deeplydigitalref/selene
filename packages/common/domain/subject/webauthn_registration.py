@@ -2,7 +2,7 @@ from typing import Dict
 from pyfuncify import monad
 from webauthn.helpers import structs
 from common.domain import webauthn_helpers
-from common.repository.subject import webauthn_registration
+from common.repository.subject import credential_registration
 from common.util import env
 from common.domain.subject import value
 
@@ -14,7 +14,7 @@ def registration_obligations(registration: value.WebAuthnRegistration) -> value.
     registration.registration_options = opts
     return monad.Right(registration)
 
-def regenerate_opts(model: webauthn_registration.RegistrationModel) -> structs.PublicKeyCredentialCreationOptions:
+def regenerate_opts(model: credential_registration.RegistrationModel) -> structs.PublicKeyCredentialCreationOptions:
     return webauthn_helpers.generate(rp_id=env.Env.relying_party_id(),
                                      rp_name=env.Env.relying_party_name(),
                                      user_id=model.subject_name,

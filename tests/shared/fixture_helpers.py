@@ -4,7 +4,7 @@ from common.domain import constants
 from key_management.domain import crypto
 
 def set_up_event_and_reg(event, registration):
-    challenge, request, model = subject_helpers.create_webauthn_reg_in_created_state(registration)
+    _challenge, request, model = subject_helpers.create_webauthn_reg_in_created_state(registration)
     mod_event = add_reg_cookie_to_event(event, model.uuid)
     mod_event['body'] = request
     return mod_event

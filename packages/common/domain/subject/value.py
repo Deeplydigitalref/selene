@@ -4,8 +4,7 @@ from webauthn.helpers import structs
 from webauthn.registration import verify_registration_response as webauthn_verify  # A bit coupled to be here
 from enum import Enum
 
-from common.repository.subject import webauthn_registration, subject
-from common.domain.subject import subject as sub
+from common.repository.subject import subject, credential_registration
 
 
 # Subject States, transitions
@@ -66,7 +65,7 @@ class WebAuthnRegistration:
     registration_options: structs.PublicKeyCredentialCreationOptions = field(default=None)
     registration_session: str = field(default=None)
     verified_registration: webauthn_verify.VerifiedRegistration = field(default=None)
-    model: webauthn_registration.RegistrationModel = field(default=None)
+    model: credential_registration.RegistrationModel = field(default=None)
 
 
 @define
@@ -83,5 +82,5 @@ class ServiceRegistration:
     subject: Subject = field(default=None)
     sub: str = field(default=None)
     state: RegistrationStates = field(default=None)
-    model: webauthn_registration.RegistrationModel = field(default=None)
+    model: credential_registration.RegistrationModel = field(default=None)
 
