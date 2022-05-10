@@ -2,21 +2,36 @@ import pytest
 
 from common.domain.oauth import token
 from common.domain.subject import registration
-from key_management.domain import sym_enc
+from key_management.domain import sym_enc, jwt
 from tests.shared import key_management_helpers
+
 
 def setup_module():
     key_management_helpers.set_up_key_management_env()
     pass
 
+
 #
-# success
+# Successful token generation
 #
 def it_issues_a_token(set_up_env_without_ssm,
                       dynamo_mock):
+    client = internal_client()
+    result = token.token_grant(token_request(client))
 
-    result = token.token_grant(token_request(internal_client()))
-    breakpoint()
+    assert result.is_right()
+
+    id_token = jwt.decode_and_validate(result.value.jwt)
+
+    assert id_token.is_right()
+    assert id_token.value['azp'] == client[0].subject.uuid
+    assert id_token.value['sub'] == client[0].subject.uuid
+
+
+def test_authz_can_be_found_by_authz_and_sub(set_up_env_without_ssm,
+                                             dynamo_mock):
+    client = internal_client()
+    result = token.token_grant(token_request(client))
 
 
 

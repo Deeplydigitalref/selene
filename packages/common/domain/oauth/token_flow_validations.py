@@ -26,7 +26,13 @@ def is_valid_client_credential(grant_tuple):
             Val.OauthTokenRecommendations.DO_NOT_GRANT)
 
 def has_token_grant_type_validation(grant_tuple):
-    return monad.Right(grant_tuple)
+    grant, ctx = grant_tuple
+    type = grant.get('grant_type', None)
+    if type in ['client_credentials']:
+        return monad.Right((grant, ctx))
+    return (Val.OauthErrors.INVALID_GRANT_TYPE,
+            "Invalid Grant Type: {}".format(type),
+            Val.OauthTokenRecommendations.DO_NOT_GRANT)
 
 def has_token_required_params_validation(grant_tuple):
     return monad.Right(grant_tuple)

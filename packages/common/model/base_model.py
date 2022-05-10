@@ -39,6 +39,13 @@ class Subject(BaseModel, discriminator='auth:subject:subject'):
     state = UnicodeAttribute()
     registrations = ListAttribute()
 
+class Authorisation(BaseModel, discriminator='auth:subject:authorisation'):
+    exp = NumberAttribute()
+    state = UnicodeAttribute()
+    is_class_of = UnicodeAttribute()
+    sub = UnicodeAttribute()
+
+
 class ActivityGroup(BaseModel, discriminator='auth:activity:activityGroup'):
     display_name = UnicodeAttribute()
     label = UnicodeAttribute()
