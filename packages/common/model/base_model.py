@@ -40,10 +40,13 @@ class Subject(BaseModel, discriminator='auth:subject:subject'):
     registrations = ListAttribute()
 
 class Authorisation(BaseModel, discriminator='auth:subject:authorisation'):
+    uuid = UnicodeAttribute()
     exp = NumberAttribute()
     state = UnicodeAttribute()
     is_class_of = UnicodeAttribute()
     sub = UnicodeAttribute()
+    azp = UnicodeAttribute()
+    jwt = UnicodeAttribute()
 
 
 class ActivityGroup(BaseModel, discriminator='auth:activity:activityGroup'):

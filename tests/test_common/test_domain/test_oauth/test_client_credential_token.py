@@ -1,7 +1,7 @@
 import pytest
 
-from common.domain.oauth import token
-from common.domain.subject import registration
+from common.domain.oauth import token, value, authorisation
+from common.domain.subject import registration, subject
 from key_management.domain import sym_enc, jwt
 from tests.shared import key_management_helpers
 
@@ -28,11 +28,26 @@ def it_issues_a_token(set_up_env_without_ssm,
     assert id_token.value['sub'] == client[0].subject.uuid
 
 
-def test_authz_can_be_found_by_authz_and_sub(set_up_env_without_ssm,
-                                             dynamo_mock):
+def test_authz_can_be_found_by_sub(set_up_env_without_ssm,
+                                   dynamo_mock):
     client = internal_client()
     result = token.token_grant(token_request(client))
 
+    sub = subject.get(client[0].subject.uuid, reify=(value.Authorisation, authorisation.from_subject)).value
+
+    assert len(sub.authorisations) == 1
+    assert sub.authorisations[0].uuid == result.value.uuid
+
+
+def test_authz_can_be_found_by_azp(set_up_env_without_ssm,
+                                   dynamo_mock):
+    client = internal_client()
+    result = token.token_grant(token_request(client))
+
+    azp = subject.get(result.value.azp, reify=(value.Authorisation, authorisation.from_azp)).value
+
+    assert len(azp.authorisations) == 1
+    assert azp.authorisations[0].uuid == result.value.uuid
 
 
 #

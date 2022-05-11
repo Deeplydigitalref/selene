@@ -33,6 +33,7 @@ class Subject:
     state: SubjectStates
     registration_ids: List = []  # the uuids of the CredentialRegistrations
     registrations: List = []  # the reified CredentialRegistrations
+    authorisations: List = []  # the reified Authorisations
     model: subject.SubjectModel = field(default=None)
 
 

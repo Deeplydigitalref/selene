@@ -36,20 +36,20 @@ def batch_create(model: AuthorisationModel) -> AuthorisationModel:
     breakpoint()
 
 
-def create(model: AuthorisationModel) -> AuthorisationModel:
-    breakpoint()
-    repo = base_model.Authorisation(hash_key=_azp_pk(model.uuid),
-                                    range_key=_azp_sk(model.uuid),
-                                    state=model.state,
-                                    is_class_of=model.is_class_of,
-                                    sub=model.uuid,
-                                    )
-    try_save = save(repo)
-
-    if try_save.is_right():
-        model.repo = monad.Right(repo)
-        return model
-    breakpoint()
+# def create(model: AuthorisationModel) -> AuthorisationModel:
+#     breakpoint()
+#     repo = base_model.Authorisation(hash_key=_azp_pk(model.uuid),
+#                                     range_key=_azp_sk(model.uuid),
+#                                     state=model.state,
+#                                     is_class_of=model.is_class_of,
+#                                     sub=model.uuid,
+#                                     )
+#     try_save = save(repo)
+#
+#     if try_save.is_right():
+#         model.repo = monad.Right(repo)
+#         return model
+#     breakpoint()
 
 
 @monad.monadic_try()
@@ -65,6 +65,22 @@ def find_current_authorisations(uuid, exp: int):
     return [_model_from_repo(r) for r in repo.query(hash_key=_azp_pk(uuid),
                                                     filter_condition=condition)]
 
+@monad.monadic_try()
+def find_current_authorisations_by_sub(sub, exp: int):
+    condition = None
+    condition &= repo.SK > str(exp)
+
+    return [_model_from_repo(r) for r in repo.query(hash_key=_sub_pk(sub),
+                                                    filter_condition=condition)]
+
+@monad.monadic_try()
+def find_current_authorisations_by_azp(azp, exp: int):
+    condition = None
+    condition &= repo.SK > str(exp)
+
+    return [_model_from_repo(r) for r in repo.query(hash_key=_azp_pk(azp),
+                                                    filter_condition=condition)]
+
 
 #
 # Helpers
@@ -77,12 +93,15 @@ def azp_repo_builder(model: AuthorisationModel) -> base_model.Authorisation:
         Note that client credential grants have the same AZP and SUB, whereas authorisation code grants dont.
     SK: includes the epoch expiry.
     """
-    return base_model.Authorisation(hash_key=_azp_pk(model.uuid),
+    return base_model.Authorisation(hash_key=_azp_pk(model.azp),
                                     range_key=_azp_sk(model.exp),
+                                    uuid=model.uuid,
                                     exp=model.exp,
                                     state=model.state,
                                     is_class_of=model.is_class_of,
-                                    sub=model.uuid)
+                                    azp=model.azp,
+                                    sub=model.sub,
+                                    jwt=model.jwt)
 
 def sub_repo_builder(model: AuthorisationModel) -> base_model.Authorisation:
     """
@@ -92,17 +111,23 @@ def sub_repo_builder(model: AuthorisationModel) -> base_model.Authorisation:
     """
     return base_model.Authorisation(hash_key=_sub_pk(model.sub),
                                     range_key=_sub_sk(model.exp),
+                                    uuid=model.uuid,
                                     state=model.state,
                                     is_class_of=model.is_class_of,
                                     exp=model.exp,
-                                    sub=model.uuid)
+                                    azp=model.azp,
+                                    sub=model.sub,
+                                    jwt=model.jwt)
 
 
 def _model_from_repo(repo: base_model.Subject) -> AuthorisationModel:
     return AuthorisationModel(uuid=repo.uuid,
+                              sub=repo.sub,
+                              azp=repo.azp,
                               state=repo.state,
                               exp=repo.exp,
                               is_class_of=repo.is_class_of,
+                              jwt=repo.jwt,
                               repo=repo)
 
 

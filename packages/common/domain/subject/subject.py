@@ -1,4 +1,4 @@
-from typing import Union, Tuple, Callable
+from typing import Union, Tuple, Callable, List
 import sys
 import uuid
 from pymonad.maybe import Just, Nothing
@@ -7,8 +7,11 @@ from pyfuncify import state_machine, monad, record, fn
 from common.repository.subject import subject as repo
 from common.util import layer
 from key_management.domain import sym_enc
+from common.domain import oauth
 
 from . import value
+
+SubjectReifyUnion = Union[value.CredentialRegistration, oauth.value.Authorisation]
 
 state_map = state_machine.state_transition_map([
     (None, value.SubjectEvents.REGISTERED, value.SubjectStates.CREATED)])
@@ -45,7 +48,7 @@ def new_from_registration(registration: Union[value.ServiceRegistration, value.W
     return model, sub
 
 
-def get(uuid: str, reify: Tuple[value.CredentialRegistration, Callable] = None) -> value.Subject:
+def get(uuid: str, reify: Tuple[SubjectReifyUnion, Callable] = None) -> value.Subject:
     return find(uuid, reify)
 
 
@@ -70,8 +73,7 @@ def state_transition(from_state: str, with_transition: str) -> monad.EitherMonad
 #
 
 def find(uuid: str,
-         reify: Tuple[value.CredentialRegistration, Callable]) -> monad.EitherMonad[
-    Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
+         reify: Tuple[SubjectReifyUnion, Callable]) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
 
     reg = to_domain(repo.find_by_uuid(uuid))
     if reify:
@@ -93,6 +95,23 @@ def credentialregistration_reifier(subject: monad.EitherMonad, reify_fn: callabl
     regs = reify_fn(subject.value)
     if all(map(lambda reg: reg.is_right(), regs)):
         subject.value.registrations = [reg.value for reg in regs]
+        return subject
+    return monad.Left(subject.value)
+
+def authorisation_reifier(subject: monad.EitherMonad, reify_fn: callable) -> monad.EitherMonad[List[oauth.value.Authorisation]]:
+    """
+    Takes a monadic subject and adds any valid authorisations (authorisations which have not expired).
+    When there are no un-expired auths, the collection is empty
+
+    :param subject:
+    :param reify_fn:
+    :return:
+    """
+    if subject.is_left():
+        return subject
+    unexpired_authzs = reify_fn(subject.value)
+    if unexpired_authzs.is_right():
+        subject.value.authorisations = unexpired_authzs.value
         return subject
     return monad.Left(subject.value)
 

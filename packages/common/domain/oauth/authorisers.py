@@ -1,10 +1,11 @@
 from typing import Tuple, Dict, Union
 from pyfuncify import monad, chronos
+from uuid import uuid4
 
 from . import value as Val
 from common.domain import subject as Sub
 from common.domain import subject as Sub
-from common.util import env
+from common.util import env, time_helpers
 from key_management.domain import jwt
 
 from common.repository.oauth import authorisation as repo
@@ -56,8 +57,9 @@ def _grant_access(subject: Sub.value.Subject):
     if existing_authz:
         return existing_authz
 
-    exp = epoch_exp()
-    authz = Val.Authorisation(uuid=subject.uuid,
+    exp = time_helpers.epoch_exp(seconds_from_now=(60 * 60 * 24))
+
+    authz = Val.Authorisation(uuid=str(uuid4()),
                               is_class_of=Val.AuthorisationClass.CLIENT_CREDENTIALS,
                               state="blah",
                               sub=subject.uuid,
