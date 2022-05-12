@@ -34,7 +34,11 @@ class Subject:
     registration_ids: List = []  # the uuids of the CredentialRegistrations
     registrations: List = []  # the reified CredentialRegistrations
     authorisations: List = []  # the reified Authorisations
+    activities: List = [] # the reified Activities (for oauth clients only)
     model: subject.SubjectModel = field(default=None)
+
+    def is_system(self):
+        return self.is_class_of == SubjectClass.SYSTEM
 
 
 # Reg States, transitions, and state machine

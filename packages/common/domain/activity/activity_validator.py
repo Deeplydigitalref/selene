@@ -1,8 +1,10 @@
+from typing import Tuple
 from cerberus import validator
 
 """
 Example Activity Policy
 {
+    'assertedByClient': "{uuid}",
     'activities', [
         {
             'name': 'customer-registration', 
@@ -18,21 +20,22 @@ Example Activity Policy
     ]
 }
 """
-
 schema = {
+    'assertedByClient': {'type': 'string'},
     'activities': {
         'type': 'list',
         'schema': {
             'type': 'dict',
             'schema': {
+                'service': {'type': 'string'},
                 'name': {'type': 'string'},
-                'activity': {'type', 'string'},
-                'description': {'type', 'string'},
+                'activity': {'type': 'string'},
+                'description': {'type': 'string'},
                 'policyStatements': {
                     'type': 'dict',
                     'schema': {
                         'hasOp': {'type': 'list', 'schema': {'type': 'string'}},
-                        'hasClassificaton': {'type': 'list', 'schema': {'type': 'string'}},
+                        'hasClassificationLevel': {'type': 'integer'},
                         'hasRealm': {'type': 'list', 'schema': {'type': 'string'}},
                         'hasAccessScope': {'type': 'list', 'schema': {'type': 'string'}}
                     }
@@ -42,7 +45,7 @@ schema = {
     }
 }
 
-def validate(value):
+
+def validate(value) -> Tuple[bool, validator.Validator]:
     val = validator.Validator(schema)
-    val.validate(value)
-    return val
+    return (val.validate(value), val)

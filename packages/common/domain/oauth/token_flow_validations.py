@@ -10,9 +10,9 @@ def has_relying_party_validation(grant_tuple):
 
     if azp.is_right():
         return monad.Right((grant, ctx))
-    return (Val.OauthErrors.INVALID_CLIENT,
+    return monad.Left((Val.OauthErrors.INVALID_CLIENT,
             "Unknown Client ID: {}".format(client_id),
-            Val.OauthTokenRecommendations.DO_NOT_GRANT)
+            Val.OauthTokenRecommendations.DO_NOT_GRANT))
 
 def is_valid_client_credential(grant_tuple):
     grant, ctx = grant_tuple

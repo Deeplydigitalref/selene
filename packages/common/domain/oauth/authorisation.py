@@ -45,6 +45,7 @@ def _to_result(models: monad.EitherMonad[List[repo.AuthorisationModel]]) -> mona
 
 
 def _to_domain(model):
+    breakpoint()
     return value.Authorisation(uuid=model.uuid,
                                is_class_of=value.AuthorisationClass[model.is_class_of],
                                state=model.state,

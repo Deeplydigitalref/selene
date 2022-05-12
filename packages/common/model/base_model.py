@@ -54,9 +54,13 @@ class ActivityGroup(BaseModel, discriminator='auth:activity:activityGroup'):
     label = UnicodeAttribute()
 
 class Activity(BaseModel, discriminator='auth:activity:activity'):
-    display_name = UnicodeAttribute()
+    uuid = UnicodeAttribute()
+    service_urn = UnicodeAttribute()
     label = UnicodeAttribute()
-
+    activity = UnicodeAttribute()
+    definition = UnicodeAttribute()
+    policy_statements = ListAttribute()
+    client_uuid = UnicodeAttribute()
 
 class Circuit(BaseModel, discriminator='auth:circuit'):
     circuit_state = UnicodeAttribute(null=True)
@@ -65,3 +69,16 @@ class Circuit(BaseModel, discriminator='auth:circuit'):
 
 class Cache(BaseModel, discriminator='auth:cache'):
     value = UnicodeAttribute()
+
+
+def scan():
+    """
+    For testing only
+    :return:
+    """
+    return [b.attribute_values for b in BaseModel.scan()]
+
+def p():
+    models = scan()
+    [print("{}\n".format(model)) for model in models]
+    pass

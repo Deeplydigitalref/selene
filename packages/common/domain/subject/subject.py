@@ -7,11 +7,13 @@ from pyfuncify import state_machine, monad, record, fn
 from common.repository.subject import subject as repo
 from common.util import layer
 from key_management.domain import sym_enc
-from common.domain import oauth
+from common.domain import oauth, activity
 
 from . import value
 
-SubjectReifyUnion = Union[value.CredentialRegistration, oauth.value.Authorisation]
+SubjectReifyUnion = Union[value.CredentialRegistration,
+                          oauth.value.Authorisation,
+                          activity.value.Activity]
 
 state_map = state_machine.state_transition_map([
     (None, value.SubjectEvents.REGISTERED, value.SubjectStates.CREATED)])
@@ -114,6 +116,25 @@ def authorisation_reifier(subject: monad.EitherMonad, reify_fn: callable) -> mon
         subject.value.authorisations = unexpired_authzs.value
         return subject
     return monad.Left(subject.value)
+
+def activity_reifier(subject: monad.EitherMonad, reify_fn: callable) -> monad.EitherMonad[List[activity.value.Activity]]:
+    """
+    Takes a monadic subject and adds any activities registered for the subject.
+    System subjects are the only type of subject which should have activities, although this is not enforced here
+
+    :param subject:
+    :param reify_fn:
+    :return: monad.EitherMonad[List[activity.value.Activity]]
+    """
+    if subject.is_left():
+        return subject
+    activities = reify_fn(subject.value)
+
+    if activities.is_right():
+        subject.value.activities = activities.value
+        return subject
+    return monad.Left(subject.value)
+
 
 
 def reify_token_caller(cls):

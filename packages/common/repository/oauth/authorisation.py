@@ -141,4 +141,4 @@ def _sub_pk(uuid):
     return "SUB#{}".format(uuid)
 
 def _sub_sk(ts):
-    return "SUB#EXP#{}".format(ts)
+    return "AUZ#EXP#{}".format(ts)

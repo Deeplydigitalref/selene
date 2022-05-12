@@ -1,9 +1,9 @@
 import pytest
 
 from common.domain.oauth import token, value, authorisation
-from common.domain.subject import registration, subject
-from key_management.domain import sym_enc, jwt
-from tests.shared import key_management_helpers
+from common.domain.subject import subject
+from key_management.domain import jwt
+from tests.shared import key_management_helpers, oauth_client_helpers
 
 
 def setup_module():
@@ -16,7 +16,7 @@ def setup_module():
 #
 def it_issues_a_token(set_up_env_without_ssm,
                       dynamo_mock):
-    client = internal_client()
+    client = oauth_client_helpers.internal_client()
     result = token.token_grant(token_request(client))
 
     assert result.is_right()
@@ -30,7 +30,7 @@ def it_issues_a_token(set_up_env_without_ssm,
 
 def test_authz_can_be_found_by_sub(set_up_env_without_ssm,
                                    dynamo_mock):
-    client = internal_client()
+    client = oauth_client_helpers.internal_client()
     result = token.token_grant(token_request(client))
 
     sub = subject.get(client[0].subject.uuid, reify=(value.Authorisation, authorisation.from_subject)).value
@@ -41,7 +41,7 @@ def test_authz_can_be_found_by_sub(set_up_env_without_ssm,
 
 def test_authz_can_be_found_by_azp(set_up_env_without_ssm,
                                    dynamo_mock):
-    client = internal_client()
+    client = oauth_client_helpers.internal_client()
     result = token.token_grant(token_request(client))
 
     azp = subject.get(result.value.azp, reify=(value.Authorisation, authorisation.from_azp)).value
@@ -53,15 +53,6 @@ def test_authz_can_be_found_by_azp(set_up_env_without_ssm,
 #
 # Helpers
 #
-def internal_client():
-    service_value = {
-        'serviceName': 'urn:service:service1',
-        'realm': 'https://example.com/ontologies/sec/realm/internal'
-    }
-    client = registration.new_service(service_value)
-    secret = sym_enc.jwe_decrypt(client.client_secret)
-    return client, secret, None
-
 
 def token_request(system_client_tuple):
     client, secret, redirect_uri = system_client_tuple
