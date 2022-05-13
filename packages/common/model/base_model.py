@@ -50,8 +50,12 @@ class Authorisation(BaseModel, discriminator='auth:subject:authorisation'):
 
 
 class ActivityGroup(BaseModel, discriminator='auth:activity:activityGroup'):
-    display_name = UnicodeAttribute()
+    uuid = UnicodeAttribute()
+    asserted_client = UnicodeAttribute()
     label = UnicodeAttribute()
+    activity_group = UnicodeAttribute()
+    definition = UnicodeAttribute()
+    policy_statements = ListAttribute()
 
 class Activity(BaseModel, discriminator='auth:activity:activity'):
     uuid = UnicodeAttribute()

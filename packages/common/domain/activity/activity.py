@@ -69,24 +69,8 @@ def _domain_builder(client: subject.value.Subject, act: Dict) -> value.Activity:
                           label=act['name'],
                           activity=act['activity'],
                           definition=act['description'],
-                          policy_statements=list(map(_to_policy_statement, act['policyStatements'].items())),
+                          policy_statements=list(map(security_policy.to_policy_statement, act['policyStatements'].items())),
                           client=client)
-
-
-def _to_policy_statement(statement: Union[Tuple, Dict]) -> security_policy.PolicyStatement:
-    """
-    When from the domain, the policy statement is a triple, e.g. ('hasOp', ['writer', 'reader'])
-    When from the model, its a Dict containing a single statement, e.g. {'hasOp': ['writer', 'reader']}
-    :param statement:
-    :return:
-    """
-    if isinstance(statement, tuple):
-        predicate, obj = statement
-    else:
-        predicate = next(iter(statement))
-        obj = statement[predicate]
-    return getattr(security_policy, predicate)(obj)
-
 
 
 def _to_model(activity: value.Activity) -> repo.ActivityModel:
@@ -109,6 +93,6 @@ def _to_domain(model: repo.ActivityModel) -> value.Activity:
                           label=model.label,
                           activity=model.activity,
                           definition=model.definition,
-                          policy_statements=list(map(_to_policy_statement, model.policy_statements)),
+                          policy_statements=list(map(security_policy.to_policy_statement, model.policy_statements)),
                           client_uuid=model.uuid)
 

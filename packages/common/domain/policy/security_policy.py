@@ -1,12 +1,7 @@
-from typing import List, TypeVar, Generic
+from typing import List, Union, Tuple, Dict
 from enum import Enum
 from attrs import define
-
-T = TypeVar('T')
-
-class PolicyStatement(Generic[T]):
-    pass
-
+import sys
 
 class ActivityOperation(Enum):
     WRITER = 'https://example.com/ontology/sec/op/writer'
@@ -73,6 +68,7 @@ class HasAccessScope:
     def statement(self):
         return {'hasAccessScope': list(map(lambda o: o.value, self.scopes))}
 
+PolicyStatementType = Union[HasOp, HasRealm, HasAccessScope, HasClassificationLevel]
 
 def hasOp(objs: List[str]) -> HasOp:
     return HasOp(ops=list(map(lambda o: ActivityOperation(o), objs)))
@@ -86,3 +82,18 @@ def hasRealm(objs: List[str]) -> HasRealm:
 
 def hasAccessScope(objs: List[str]) -> HasAccessScope:
     return HasAccessScope(scopes=list(map(lambda o: AccessScoping(o), objs)))
+
+
+def to_policy_statement(statement: Union[Tuple, Dict]) -> PolicyStatementType:
+    """
+    When from the domain, the policy statement is a triple, e.g. ('hasOp', ['https://example.com/ontology/sec/op/writer', 'https://example.com/ontology/sec/op/reader'])
+    When from the model, its a Dict containing a single statement, e.g. {'hasOp': ['https://example.com/ontology/sec/op/writer', 'https://example.com/ontology/sec/op/reader']}
+    :param statement:
+    :return:
+    """
+    if isinstance(statement, tuple):
+        predicate, obj = statement
+    else:
+        predicate = next(iter(statement))
+        obj = statement[predicate]
+    return getattr(sys.modules[__name__], predicate)(obj)
