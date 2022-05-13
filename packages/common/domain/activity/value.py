@@ -21,11 +21,3 @@ class Activity:
     client_uuid: str = field(default=None)
     client: sub.Subject = field(default=None)
     model: repo.ActivityModel = field(default=None)
-
-@define
-class PolicyStatement:
-    predicate: str
-    attributes: list
-
-    def to_dict(self):
-        return {self.predicate: self.attributes}

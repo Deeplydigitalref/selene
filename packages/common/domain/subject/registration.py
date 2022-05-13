@@ -78,7 +78,7 @@ def initiate(registration_value: value.WebAuthnRegistration):
 
 
 def get(uuid: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
-    return find(uuid, reify)
+    return find(uuid=uuid, reify=reify)
 
 def registrations_for_subject(subject: value.Subject):
     models = repo.get_registrations_by_uuids(subject.registration_ids)
@@ -130,13 +130,9 @@ def complete_valid_registration_model(registration_value: value.WebAuthnRegistra
     model.sub = registration_value.subject.uuid
     return model
 
-
+@layer.reifier(reifier_module=sys.modules[__name__])
 def find(uuid: str, reify: Tuple[Any, Callable]) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
-    reg = to_domain(repo.find_by_uuid(uuid))
-    if reify:
-        cls, reify_fn = reify
-        return reify_token_caller(cls)(reg, reify_fn)
-    return reg
+    return to_domain(repo.find_by_uuid(uuid))
 
 
 def subject_reifier(reg: monad.EitherMonad, reify_fn: callable) -> monad.EitherMonad[value.WebAuthnRegistration]:
@@ -154,10 +150,6 @@ def subject_reifier(reg: monad.EitherMonad, reify_fn: callable) -> monad.EitherM
         reg.value.subject = sub.value
         return reg
     return monad.Left(reg.value)
-
-
-def reify_token_caller(cls):
-    return getattr(sys.modules[__name__], "{}_reifier".format(cls.__name__.lower()))
 
 
 def find_with_sub(uuid: str) -> value.WebAuthnRegistration:

@@ -5,6 +5,7 @@ from pymonad.tools import curry
 
 from . import activity_validator, value
 from common.domain import subject
+from common.domain.policy import security_policy
 from common.repository.activity import activity as repo
 
 ActivityTuple = Tuple[Dict, Dict]
@@ -72,7 +73,7 @@ def _domain_builder(client: subject.value.Subject, act: Dict) -> value.Activity:
                           client=client)
 
 
-def _to_policy_statement(statement: Union[Tuple, Dict]) -> value.PolicyStatement:
+def _to_policy_statement(statement: Union[Tuple, Dict]) -> security_policy.PolicyStatement:
     """
     When from the domain, the policy statement is a triple, e.g. ('hasOp', ['writer', 'reader'])
     When from the model, its a Dict containing a single statement, e.g. {'hasOp': ['writer', 'reader']}
@@ -80,11 +81,12 @@ def _to_policy_statement(statement: Union[Tuple, Dict]) -> value.PolicyStatement
     :return:
     """
     if isinstance(statement, tuple):
-        predicate, object = statement
+        predicate, obj = statement
     else:
         predicate = next(iter(statement))
-        object = statement[predicate]
-    return value.PolicyStatement(predicate=predicate, attributes=object)
+        obj = statement[predicate]
+    return getattr(security_policy, predicate)(obj)
+
 
 
 def _to_model(activity: value.Activity) -> repo.ActivityModel:
@@ -98,7 +100,7 @@ def _to_model(activity: value.Activity) -> repo.ActivityModel:
 
 
 def _policy_statements_to_dict(stmts) -> Dict:
-    return [stmt.to_dict() for stmt in stmts]
+    return [stmt.statement() for stmt in stmts]
 
 
 def _to_domain(model: repo.ActivityModel) -> value.Activity:

@@ -11,7 +11,7 @@ def setup_module():
     pass
 
 
-def it_adds_activities_to_the_client(set_up_env_without_ssm,
+def it_adds_activity_to_the_client(set_up_env_without_ssm,
                                      dynamo_mock):
     client_registration, _client_id, _none = oauth_client_helpers.internal_client()
 
@@ -29,11 +29,11 @@ def it_adds_activities_to_the_client(set_up_env_without_ssm,
 def activity_request(client):
     return {
         'assertedByClient': client.uuid,
-        'activities': service_activities(client.subject_name)
+        'activities': service_activity(client.subject_name)
     }
 
 
-def service_activities(service_name):
+def service_activity(service_name):
     return [
         {
             'service': service_name,
@@ -41,10 +41,10 @@ def service_activities(service_name):
             'activity': 'party:resource:customer:registration',
             'description': 'Registers a new tenant and tenant party.',
             'policyStatements': {
-                'hasOp': ['writer', 'reader'],
+                'hasOp': ['https://example.com/ontology/sec/op/writer', 'https://example.com/ontology/sec/op/reader'],
                 'hasClassificationLevel': 4,
-                'hasRealm': ['internal', 'api'],
-                'hasAccessScope': ['privileged']
+                'hasRealm': ['https://example.com/ontology/sec/realm/internal', 'https://example.com/ontology/sec/realm/api'],
+                'hasAccessScope': ['https://example.com/ontology/sec/scope/privileged']
             }
         }
     ]

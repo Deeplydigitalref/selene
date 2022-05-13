@@ -141,5 +141,5 @@ def initiate_reg(reg) -> value.WebAuthnRegistration:
 def new_service_reg():
     return {
         'serviceName': 'urn:service:service1',
-        'realm': 'https://example.com/ontologies/sec/realm/internal'
+        'realm': 'https://example.com/ontology/sec/realm/internal'
     }
