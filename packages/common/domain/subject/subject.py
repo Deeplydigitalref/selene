@@ -51,7 +51,7 @@ def new_from_registration(registration: Union[value.ServiceRegistration, value.W
 
 
 def get(uuid: str, reify: Tuple[SubjectReifyUnion, Callable] = None) -> value.Subject:
-    return find(uuid, reify)
+    return find(uuid=uuid, reify=reify)
 
 
 def from_registration(registration):
@@ -74,14 +74,10 @@ def state_transition(from_state: str, with_transition: str) -> monad.EitherMonad
 # Helpers
 #
 
+@layer.reifier(reifier_module=sys.modules[__name__])
 def find(uuid: str,
          reify: Tuple[SubjectReifyUnion, Callable]) -> monad.EitherMonad[Union[value.WebAuthnRegistration, value.ServiceRegistration]]:
-
-    reg = to_domain(repo.find_by_uuid(uuid))
-    if reify:
-        cls, reify_fn = reify
-        return reify_token_caller(cls)(reg, reify_fn)
-    return reg
+    return to_domain(repo.find_by_uuid(uuid))
 
 
 def credentialregistration_reifier(subject: monad.EitherMonad, reify_fn: callable) -> monad.EitherMonad[value.WebAuthnRegistration]:
@@ -134,11 +130,6 @@ def activity_reifier(subject: monad.EitherMonad, reify_fn: callable) -> monad.Ei
         subject.value.activities = activities.value
         return subject
     return monad.Left(subject.value)
-
-
-
-def reify_token_caller(cls):
-    return getattr(sys.modules[__name__], "{}_reifier".format(cls.__name__.lower()))
 
 
 def class_from_registration(registration):
