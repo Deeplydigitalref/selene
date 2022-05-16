@@ -35,8 +35,9 @@ schema = {
                     'schema': {
                         'hasOp': {'type': 'list', 'schema': {'type': 'string'}},
                         'hasClassificationLevel': {'type': 'integer'},
-                        'hasRealm': {'type': 'list', 'schema': {'type': 'string'}},
-                        'hasAccessScope': {'type': 'list', 'schema': {'type': 'string'}}
+                        'hasRealm': {'type': 'string'},
+                        'hasAccessScope': {'type': 'list', 'schema': {'type': 'string'}},
+                        'hasBoundedContext': {'type': 'string'},
                     }
                 }
             }

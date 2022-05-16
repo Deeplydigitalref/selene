@@ -19,14 +19,15 @@ def register(activity_request: Dict) -> monad.EitherMonad:
 
     return result
 
-def get(group: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[value.ActivityGroup]:
-    return _query_by_group(group, reify)
+def get(realm: str, bounded_context: str, label: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[value.ActivityGroup]:
+    return _query_by_realm_context_group(realm, bounded_context, label, reify)
 
 
 #
 # Helpers
 #
-def _query_by_group(group: str, reify) -> monad.EitherMonad[value.ActivityGroup]:
+def _query_by_realm_context_group(realm: str, bounded_context: str, label: str, reify: Tuple[Any, Callable]) -> monad.EitherMonad[value.ActivityGroup]:
+    breakpoint()
     result = repo.find_by_group(group)
     if result.is_right():
         return monad.Right(_to_domain(result.value))
@@ -83,6 +84,8 @@ def _to_model(activity_group: value.ActivityGroup) -> repo.ActivityGroupModel:
                                    label=activity_group.label,
                                    activity_group=activity_group.activity_group,
                                    definition=activity_group.definition,
+                                   base_realm=security_policy.realm_from_statements(activity_group.policy_statements).name,
+                                   base_bounded_context=security_policy.bounded_context_from_statements(activity_group.policy_statements).name,
                                    policy_statements=_policy_statements_to_dict(activity_group.policy_statements))
 
 

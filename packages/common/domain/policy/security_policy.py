@@ -1,30 +1,37 @@
 from typing import List, Union, Tuple, Dict
-from enum import Enum
+from enum import Enum, EnumMeta
 from attrs import define
 import sys
+from pyfuncify import fn, record
 
-class ActivityOperation(Enum):
+from common.util import enum_helpers
+
+class ActivityOperation(Enum, metaclass=enum_helpers.DefaultEnumMeta):
     WRITER = 'https://example.com/ontology/sec/op/writer'
     READER = 'https://example.com/ontology/sec/op/reader'
+
+    default = READER
 
     def statement(self):
         return {'hasOp': self.value}
 
 @define
-class HasOp:
+class HasOp():
     ops: List[ActivityOperation]
 
     def statement(self):
         return {'hasOp': list(map(lambda o: o.value, self.ops))}
 
 
-class SecurityClassificationLevel(Enum):
+class SecurityClassificationLevel(Enum, metaclass=enum_helpers.DefaultEnumMeta):
     Level5 = 5   # Highly Protected, for privileged use only
     Level4 = 4
     Level3 = 3
     Level2 = 2
     Level1 = 1
     Level0 = 0   # Open Classificiation
+
+    default = Level0
 
     def statement(self):
         return {'hasClassificationLevel': self.value}
@@ -37,26 +44,52 @@ class HasClassificationLevel:
         return {'hasClassificationLevel': self.lvl.value}
 
 
-class Realm(Enum):
+class Realm(Enum, metaclass=enum_helpers.DefaultEnumMeta):
     INTERNAL = 'https://example.com/ontology/sec/realm/internal'
+    API = 'https://example.com/ontology/sec/realm/api'
     CUSTOMER = 'https://example.com/ontology/sec/realm/customer'
     OPEN = 'https://example.com/ontology/sec/realm/open'
-    API = 'https://example.com/ontology/sec/realm/api'
+
+    default = OPEN
 
     def statement(self):
         return {'hasRealm': self.value}
 
 @define
 class HasRealm:
-    realms: List[Realm]
+    realm: Realm
 
     def statement(self):
-        return {'hasRealm': list(map(lambda o: o.value, self.realms))}
+        return {'hasRealm': self.realm.value}
+
+    @classmethod
+    def _missing_value_(cls, value):
+        breakpoint()
 
 
-class AccessScoping(Enum):
-    PRIVILEGED = "https://example.com/ontology/sec/scope/privileged"  # only accessible by subjects with privileged rights
+class BoundedContext(Enum, metaclass=enum_helpers.DefaultEnumMeta):
+    ANY = 'https://example.com/ontology/sec/boundedContext/ANY'  # applies to all BCs
+    NONE = 'https://example.com/ontology/sec/boundedContext/NONE'  # applies to no BCs
+
+    default = NONE
+
+    def statement(self):
+        return {'hasBoundedContext': self.value}
+
+@define
+class HasBoundedContext:
+    boundedContext: BoundedContext
+
+    def statement(self):
+        return {'hasBoundedContext': self.boundedContext.value}
+
+
+class AccessScoping(Enum, metaclass=enum_helpers.DefaultEnumMeta):
+    PRIVILEGED = "https://example.com/ontology/sec/scope/privileged"  # only accessible by subjects with privileged attributes
     ANY = "https://example.com/ontology/sec/scope/any"                # all subjects within the defined realms have access
+    NONE = "https://example.com/ontology/sec/scope/none"              # no access!
+
+    default = NONE
 
     def statement(self):
         return {'hasAccessScope': self.value}
@@ -68,20 +101,29 @@ class HasAccessScope:
     def statement(self):
         return {'hasAccessScope': list(map(lambda o: o.value, self.scopes))}
 
-PolicyStatementType = Union[HasOp, HasRealm, HasAccessScope, HasClassificationLevel]
+PolicyStatementType = Union[HasOp, HasRealm, HasAccessScope, HasClassificationLevel, HasBoundedContext]
 
 def hasOp(objs: List[str]) -> HasOp:
     return HasOp(ops=list(map(lambda o: ActivityOperation(o), objs)))
 
-def hasClassificationLevel(obj: int) -> HasClassificationLevel:
-    return HasClassificationLevel(lvl=SecurityClassificationLevel(obj))
+def hasClassificationLevel(stmt: int) -> HasClassificationLevel:
+    return HasClassificationLevel(lvl=SecurityClassificationLevel(stmt))
 
-def hasRealm(objs: List[str]) -> HasRealm:
-    return HasRealm(realms=list(map(lambda o: Realm(o), objs)))
+def hasRealm(stmt: List[str]) -> HasRealm:
+    return HasRealm(realm=Realm(stmt))
+
+def hasBoundedContext(stmt: str) -> HasBoundedContext:
+    return HasBoundedContext(boundedContext=BoundedContext(stmt))
 
 
 def hasAccessScope(objs: List[str]) -> HasAccessScope:
     return HasAccessScope(scopes=list(map(lambda o: AccessScoping(o), objs)))
+
+def realm_from_statements(stmts: PolicyStatementType) -> HasRealm:
+    return record.at('realm')(fn.find(lambda p: isinstance(p, HasRealm), stmts))
+
+def bounded_context_from_statements(stmts: PolicyStatementType) -> HasBoundedContext:
+    return record.at('boundedContext')(fn.find(lambda p: isinstance(p, HasBoundedContext), stmts))
 
 
 def to_policy_statement(statement: Union[Tuple, Dict]) -> PolicyStatementType:

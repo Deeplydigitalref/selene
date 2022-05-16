@@ -15,6 +15,8 @@ class ActivityGroupModel:
     label: str
     activity_group: str
     definition: str
+    base_realm: str
+    base_bounded_context: str
     policy_statements: list
     repo: repo = field(default=None)
 
@@ -45,8 +47,8 @@ def _batch_save(model: ActivityGroupModel) -> ActivityGroupModel:
 
 
 def _to_base(model: ActivityGroupModel) -> base_model.ActivityGroup:
-    return base_model.ActivityGroup(hash_key=_atg_pk(model.activity_group),
-                                    range_key=_atg_sk(model.activity_group),
+    return base_model.ActivityGroup(hash_key=_atg_pk(model.base_realm),
+                                    range_key=_atg_sk(model.base_bounded_context, model.activity_group),
                                     uuid=model.uuid,
                                     asserted_client=model.asserted_client,
                                     label=model.label,
@@ -56,6 +58,7 @@ def _to_base(model: ActivityGroupModel) -> base_model.ActivityGroup:
 
 
 def _model_from_repo(repo: base_model.ActivityGroup) -> ActivityGroupModel:
+    breakpoint()
     return ActivityGroupModel(uuid=repo.uuid,
                               asserted_client=repo.asserted_client,
                               label=repo.label,
@@ -64,13 +67,14 @@ def _model_from_repo(repo: base_model.ActivityGroup) -> ActivityGroupModel:
                               policy_statements=repo.policy_statements)
 
 
-def _atg_pk(group: str) -> str:
-    return "ATG#{}".format(group)
+def _atg_pk(realm: str) -> str:
+    return "ATG#REALM#{realm}".format(realm=realm)
 
 
-def _atg_sk(group: str) -> str:
-    return "{base_sk}{grp}".format(base_sk=_base_sk(), grp=group)
+def _atg_sk(bc, group: str) -> str:
+    return "{base_sk}{bc}#{grp}".format(base_sk=_base_sk(), bc=bc, grp=group)
 
 
 def _base_sk() -> str:
-    return "ATG#META#"
+    return "ATG#CTX#"
+
