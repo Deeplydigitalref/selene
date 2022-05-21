@@ -68,7 +68,7 @@ class HasRealm:
 
 
 class BoundedContext(Enum, metaclass=enum_helpers.DefaultEnumMeta):
-    ANY = 'https://example.com/ontology/sec/boundedContext/ANY'  # applies to all BCs
+    ALL = 'https://example.com/ontology/sec/boundedContext/ALL'  # applies to all BCs
     NONE = 'https://example.com/ontology/sec/boundedContext/NONE'  # applies to no BCs
 
     default = NONE
@@ -114,7 +114,6 @@ def hasRealm(stmt: List[str]) -> HasRealm:
 
 def hasBoundedContext(stmt: str) -> HasBoundedContext:
     return HasBoundedContext(boundedContext=BoundedContext(stmt))
-
 
 def hasAccessScope(objs: List[str]) -> HasAccessScope:
     return HasAccessScope(scopes=list(map(lambda o: AccessScoping(o), objs)))

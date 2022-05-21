@@ -19,13 +19,23 @@ def register(activity_request: Dict) -> monad.EitherMonad:
 
     return result
 
-def get(realm: str, bounded_context: str, label: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[value.ActivityGroup]:
+def get(group: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[value.ActivityGroup]:
+    return _find(group, reify)
+
+
+def match_policy(realm: str, bounded_context: str, label: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[value.ActivityGroup]:
     return _query_by_realm_context_group(realm, bounded_context, label, reify)
 
 
 #
 # Helpers
 #
+def _find(group: str, reify: Tuple[Any, Callable] = None) -> monad.EitherMonad[value.ActivityGroup]:
+    result = repo.find_by_group(group)
+    if result.is_right():
+        return monad.Right(_to_domain(result.value))
+    breakpoint()
+
 def _query_by_realm_context_group(realm: str, bounded_context: str, label: str, reify: Tuple[Any, Callable]) -> monad.EitherMonad[value.ActivityGroup]:
     breakpoint()
     result = repo.find_by_group(group)
@@ -77,15 +87,14 @@ def _domain_builder(client: subject.value.Subject, atg: Dict) -> value.ActivityG
                                    map(security_policy.to_policy_statement, atg['policyStatements'].items())),
                                client=client)
 
-
 def _to_model(activity_group: value.ActivityGroup) -> repo.ActivityGroupModel:
     return repo.ActivityGroupModel(uuid=activity_group.uuid,
                                    asserted_client=activity_group.asserted_client,
                                    label=activity_group.label,
                                    activity_group=activity_group.activity_group,
                                    definition=activity_group.definition,
-                                   base_realm=security_policy.realm_from_statements(activity_group.policy_statements).name,
-                                   base_bounded_context=security_policy.bounded_context_from_statements(activity_group.policy_statements).name,
+                                   # base_realm=security_policy.realm_from_statements(activity_group.policy_statements).name,
+                                   # base_bounded_context=security_policy.bounded_context_from_statements(activity_group.policy_statements).name,
                                    policy_statements=_policy_statements_to_dict(activity_group.policy_statements))
 
 
@@ -99,5 +108,4 @@ def _to_domain(model: repo.ActivityGroupModel) -> value.ActivityGroup:
                                label=model.label,
                                activity_group=model.activity_group,
                                definition=model.definition,
-                               policy_statements=list(
-                                   map(security_policy.to_policy_statement, model.policy_statements)))
+                               policy_statements=list(map(security_policy.to_policy_statement, model.policy_statements)))

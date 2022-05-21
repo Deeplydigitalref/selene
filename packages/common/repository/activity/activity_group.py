@@ -15,8 +15,8 @@ class ActivityGroupModel:
     label: str
     activity_group: str
     definition: str
-    base_realm: str
-    base_bounded_context: str
+    # base_realm: str
+    # base_bounded_context: str
     policy_statements: list
     repo: repo = field(default=None)
 
@@ -32,7 +32,7 @@ def batch_create(models: List[ActivityGroupModel]) -> List[ActivityGroupModel]:
 
 @monad.monadic_try()
 def find_by_group(group: str):
-    return _model_from_repo(base_model.ActivityGroup.get(hash_key=_atg_pk(group),
+    return _model_from_base(base_model.ActivityGroup.get(hash_key=_atg_pk(group),
                                                          range_key=_atg_sk(group)))
 
 
@@ -47,8 +47,8 @@ def _batch_save(model: ActivityGroupModel) -> ActivityGroupModel:
 
 
 def _to_base(model: ActivityGroupModel) -> base_model.ActivityGroup:
-    return base_model.ActivityGroup(hash_key=_atg_pk(model.base_realm),
-                                    range_key=_atg_sk(model.base_bounded_context, model.activity_group),
+    return base_model.ActivityGroup(hash_key=_atg_pk(model.activity_group),
+                                    range_key=_atg_sk(model.activity_group),
                                     uuid=model.uuid,
                                     asserted_client=model.asserted_client,
                                     label=model.label,
@@ -57,22 +57,29 @@ def _to_base(model: ActivityGroupModel) -> base_model.ActivityGroup:
                                     policy_statements=model.policy_statements)
 
 
-def _model_from_repo(repo: base_model.ActivityGroup) -> ActivityGroupModel:
-    breakpoint()
-    return ActivityGroupModel(uuid=repo.uuid,
-                              asserted_client=repo.asserted_client,
-                              label=repo.label,
-                              activity_group=repo.activity_group,
-                              definition=repo.definition,
-                              policy_statements=repo.policy_statements)
+def _model_from_base(base: base_model.ActivityGroup) -> ActivityGroupModel:
+    return ActivityGroupModel(uuid=base.uuid,
+                              asserted_client=base.asserted_client,
+                              label=base.label,
+                              activity_group=base.activity_group,
+                              definition=base.definition,
+                              policy_statements=base.policy_statements)
 
 
-def _atg_pk(realm: str) -> str:
-    return "ATG#REALM#{realm}".format(realm=realm)
+def _atg_pk(group: str) -> str:
+    return "ATG#{group}".format(group=group)
 
 
-def _atg_sk(bc, group: str) -> str:
-    return "{base_sk}{bc}#{grp}".format(base_sk=_base_sk(), bc=bc, grp=group)
+def _atg_sk(group: str) -> str:
+    return "{base_sk}#META#{group}".format(base_sk=_base_sk(), group=group)
+
+
+# def _atg_pk(realm: str) -> str:
+#     return "ATG#REALM#{realm}".format(realm=realm)
+#
+#
+# def _atg_sk(bc, group: str) -> str:
+#     return "{base_sk}{bc}#{grp}".format(base_sk=_base_sk(), bc=bc, grp=group)
 
 
 def _base_sk() -> str:
